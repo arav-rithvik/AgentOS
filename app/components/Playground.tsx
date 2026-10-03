@@ -35,7 +35,7 @@ export default function Playground() {
       <div className="mt-2 text-[13px] leading-relaxed" style={{ color: "var(--faint)" }}>
         {!run && "Send it, watch the operating system on the right, then check the result on the computer below."}
         {running && <span style={{ color: "var(--dim)" }}>Running on AgentOS. Every system call shows up on the right.</span>}
-        {done && <span style={{ color: "var(--green)" }}>✓ Done in {(run.ms / 1000).toFixed(1)}s. Check it on the computer below: Docs → “ML internships - today”.</span>}
+        {done && <span style={{ color: "var(--green)" }}>✓ Done in {(run.ms / 1000).toFixed(1)}s. Check it on the computer below.</span>}
         {run?.status === "error" && <span style={{ color: "#ff6b6b" }}>Something went wrong. Send it again.</span>}{" "}
         The computer is a Mac replica with demo copies of your apps, since a public demo can’t sign in to your real accounts.
       </div>
