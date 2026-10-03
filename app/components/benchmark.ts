@@ -1,4 +1,4 @@
-// The comparison: the same internship task ("Find today's ML internships across 5 boards and write me a ranked doc."), run by each computer-use agent.
+// The comparison: the same internship task (the prompt shown on the page: components/data.ts PRESETS[1]), run by each computer-use agent.
 // Fill these in from the benchmark run (exact values, not rounded). null shows as "—".
 //   ms: wall time in milliseconds · tokens: total tokens · actions: clicks, types and tool calls · screenshots: screenshots taken
 

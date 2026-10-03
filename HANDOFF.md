@@ -2,7 +2,7 @@
 
 ## ⚡ Latest (read this first)
 
-- **The demo is the internship task.** The judge sees one pre-filled prompt, "Find today's ML internships across 5 boards and write me a ranked doc.", and presses send.
+- **The demo is the internship task.** The judge sees one pre-filled prompt, "Open all 5 job boards, pull every ML internship posted today, merge the ones listed on more than one board, rank the rest for hands-on ML research, and write a new doc with each role’s link and every board it’s on.", and presses send. Run your benchmark agents on exactly this text.
   - The right side streams the real system calls: 5× `jobboard.jobs.list`, then `docs.create`.
   - A Mac notification sends them to Docs → "ML internships - today".
   - A local real run took 9,964 ms, 14,227 tokens, 6 calls.
