@@ -15,10 +15,10 @@ Submission is due at 5:30 PM PDT on Oct 3, 2026. Building stops at 4:30 PM.
 
 1. **Do not change the idea.** `idea.md` is absolute. Do not add, remove or reframe the product.
 2. **Build only what is in the demo.** If a feature is not in a scene in `TASKS.md`, do not build it.
-3. **Follow the contract in `TASKS.md`.** The data shapes and the two API calls are shared by the frontend and the backend. Do not change them without telling the user.
+3. **Follow the contract in `TASKS.md`.** The data shapes, the manifest and the API call are shared by the frontend and the backend. Do not change them without telling the user.
 4. **Stay in your owner's folders.**
    - Arav: `app/lib/`, `app/app/api/`, `app/supabase/`
-   - Rithvik: `app/app/page.tsx`, `app/components/`, `app/app/globals.css`
+   - Rithvik: all pages under `app/app/` except `api/`, `app/components/`, `app/app/globals.css`
 5. **Work by task ID.** Say which task you are on (for example `A2.3`). When its "done when" check passes, tick its box in `TASKS.md`.
 6. **Do not write code until the user says to build.** A question is a question; answer it.
 7. **Never commit secrets.** Keys live in `app/.env.local` only. Do not paste keys in chat, code or docs.
@@ -28,6 +28,6 @@ Submission is due at 5:30 PM PDT on Oct 3, 2026. Building stops at 4:30 PM.
 
 ## If you are late
 
-Cut in this order: voice, Scene 1 (ask). Never cut Scene 2 (act) or Scene 3 (race against a pixel agent).
+Cut in this order: eval table over 5 runs (use 1 run), receipts click-through, calendar app, free-text box. Never cut the live hero run or the baseline recording.
 
-Do not build undo, fork or scoped identity. They are roadmap only.
+Today's build decisions are at the top of `TASKS.md`: mock job boards, hand-modeled drivers, no driver compiling, no agent-OAuth into the boards. Do not claim those as built.

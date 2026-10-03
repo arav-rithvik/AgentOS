@@ -1,181 +1,163 @@
-# AgentOS: demo plan and task split
+# AgentOS: demo plan and task split (for idea.md v3)
 
 Rule: if it is not in the demo, do not build it.
 
-**The one thing we show:** on AgentOS the world is queryable data, not pixels. An agent reads and changes it directly.
+**The one thing we show:** the pixels-vs-data race. A pixel agent and AgentOS do the same task, with time, steps and tokens on screen.
 
-Not in this build: undo, fork, scoped identity. They are on the roadmap only (see `idea.md`).
+**Hero task:** "Check these 5 job boards for new ML internships posted today, dedupe them, rank them, drop the list in a doc."
 
-## Clock
+## Decisions for today's build (answers to the open questions in idea.md)
+
+- **Boards:** 5 mock job boards that we host. Not real sites. Hand-modeled drivers.
+- **Driver compiling:** not built. Say "hand-modeled today, compiled by the OS next".
+- **Auth:** the user signs in with Supabase Auth. The mock boards need no login. Do not claim agent-OAuth into the boards.
+- **Baseline:** an existing computer-use agent, recorded once on our mock board pages. Time and steps are measured with a clock. Tokens are computed from the count of screenshots and marked "estimated".
+- **Undo, fork, UI-shift gag, voice:** cut unless everything else is done by 4:10 PM.
+
+## Clock (written at 2:50 PM)
 
 | Time | Goal |
 |---|---|
-| 2:35 PM | Setup (S) done. Empty app is live on Vercel. |
-| 3:30 PM | Arav's engine works alone. Rithvik's page works alone with fake data. |
-| 4:00 PM | Merged (M). Real data on the page. Scenes 1 and 2 work. |
-| 4:20 PM | Baseline recorded and the numbers are on the page (Scene 3). |
+| 3:05 PM | Setup (S) done. Empty app is live on Vercel. |
+| 3:40 PM | Arav: `/api/run` does the hero task. Rithvik: pages work with fake data. |
+| 4:00 PM | Merged (M). The judge page runs the hero task live. |
+| 4:20 PM | Baseline recorded. Numbers on the page. |
 | 4:30 PM | **Stop building.** Fix only what breaks the demo. |
 | 5:00 PM | Video recorded. |
 | 5:15 PM | **Submit.** |
 
-If you are late, cut in this order: voice (R8), Scene 1. Never cut Scene 2 or Scene 3.
+If you are late, cut in this order: eval table over 5 runs (use 1 run), receipts click-through, calendar app, free-text box. Never cut the live hero run or the baseline recording.
 
 ---
 
-## The demo (2 to 3 minutes)
+## The video (2 to 3 minutes)
 
-One web page, three columns:
-
-- **Left, "World":** the calendar, mail and files as cards. This is what a human sees.
-- **Center, "Agent":** the prompt box, and the same world as JSON. This is what the agent sees.
-- **Right, "Activity":** each query the agent ran and each change it made.
-
-| Scene | Time | What you do | What the judge sees |
-|---|---|---|---|
-| 0. Hook | 0:00-0:20 | Say: "Every agent today feels around a dark room by touching pixels. AgentOS turns the lights on." | Left: a screenshot of a desktop. Right: the same world as JSON, with its token count. |
-| 1. Ask | 0:20-0:50 | Prompt: "What is on my calendar tomorrow, and which emails need a reply?" | The Activity column shows 2 queries. The answer comes back in seconds. Time and tokens show. |
-| 2. Act | 0:50-1:30 | Prompt: "Sam asked to move our 1:1. Move it to tomorrow at a time with no conflicts and email him the new time." | The calendar card moves. A sent mail appears. The Activity column shows each change, with the old and new value. |
-| 3. Race | 1:30-2:20 | Play the recording of a pixel agent doing the Scene 2 task on the same page, sped up, with a timer. | Two bars: time and steps for the pixel agent against AgentOS. AgentOS tokens show as measured. |
-| 4. Close | 2:20-2:40 | Say: "The computer for agents. Built on Supabase." | The page. |
-
-What is real: login, the database, the agent, each query and each change.
-What is not real: the mail and calendar are AgentOS's own demo apps, not Gmail. Say this openly.
-
-**Scene 3 must use measured numbers.** Time the pixel agent with a clock. Count its steps. Do not make up a token number for it.
+| Scene | Time | What the judge sees |
+|---|---|---|
+| 0. Cold open | 0:00-0:20 | The pixel agent, slow, taking screenshots of a job board. A timer runs. |
+| 1. The idea | 0:20-0:40 | One job board as a page, next to the same board as JSON. "No screen exists in this loop." |
+| 2. The race | 0:40-1:50 | Left: the pixel agent recording, sped up. Right: AgentOS live. The log streams typed calls: 5 `jobs.list` at once, then `docs.create`. Token counters on both sides. |
+| 3. The result | 1:50-2:15 | The doc opens with the ranked list. Click one log row to show its receipt. |
+| 4. Close | 2:15-2:30 | "Browser agents are better tourists on the web. We're the country." |
 
 ---
 
 ## The contract (both of you build to this)
 
-Rithvik's fake data and Arav's real data must have the same shape. Do not change this without telling the other.
-
-**An object** (one thing in the world):
+**The manifest** (what the agent reads at the start):
 ```json
-{ "key": "evt_sam", "type": "event", "data": { "title": "1:1 with Sam", "start": "2026-10-03T15:00", "end": "2026-10-03T15:30", "attendees": ["sam@northwind.dev"] } }
+{ "apps": {
+  "board_a": { "name": "Northwind Jobs", "actions": { "jobs.list": { "args": { "query": "string?", "posted": "today|any" } } } },
+  "board_b": "...same shape, 5 boards: board_a to board_e...",
+  "docs":     { "actions": { "docs.list": {}, "docs.create": { "args": { "title": "string", "body": "string" } } } },
+  "calendar": { "actions": { "events.list": {}, "events.create": { "args": { "title": "string", "start": "string", "end": "string" } } } }
+} }
 ```
-Types: `event` {title, start, end, attendees}, `mail` {folder, from, to, subject, body, unread, at}, `file` {name, content}, `contact` {name, email, role}.
 
-**An activity row** (one thing the agent did):
+**An object** (one row in the `objects` table):
 ```json
-{ "id": "...", "run_id": "...", "op": "update", "key": "evt_sam", "type": "event",
-  "query": null,
-  "before": { "start": "2026-10-03T15:00" }, "after": { "start": "2026-10-04T14:00" },
-  "ok": true, "error": null }
+{ "app": "board_a", "type": "job", "key": "job_a1",
+  "data": { "title": "ML Research Intern", "company": "Halcyon Labs", "location": "SF", "url": "/boards/a#job_a1", "posted": "2026-10-03" } }
 ```
-`op` is `query`, `create`, `update` or `delete`. For a `query`, the `query` field has the filter (for example `{ "type": "event", "where": { "start": "2026-10-04" } }`) and `after` has `{ "count": 3 }`.
+Other types: `doc` {title, body}, `event` {title, start, end}.
 
-**A run** (one agent task):
+**An action** (one row in the log, one typed call):
 ```json
-{ "id": "...", "status": "done", "result": "Moved the 1:1 to 2pm tomorrow.", "steps": 3, "input_tokens": 2100, "output_tokens": 340, "ms": 6200 }
+{ "id": "...", "run_id": "...", "call": "board_a.jobs.list", "args": { "query": "ML intern", "posted": "today" },
+  "receipt": { "ok": true, "count": 4 }, "ms": 38 }
 ```
+For `docs.create` the receipt is `{ "ok": true, "id": "doc_x1", "link": "/docs/doc_x1" }`.
+
+**A run:**
+```json
+{ "id": "...", "prompt": "...", "status": "running|done|error", "result": "...", "steps": 3, "input_tokens": 2100, "output_tokens": 340, "ms": 6200 }
+```
+The run row is updated after each step, so the token counter can tick.
 
 **The one API call** (POST, JSON, header `Authorization: Bearer <user token>`):
-- `/api/run` with `{ prompt, worldId }` returns `{ run: {...} }`.
+- `/api/run` with `{ prompt }` returns `{ run: {...} }`.
 
-**The database tables:** `worlds`, `objects`, `actions`, `runs`.
+**Tables:** `objects`, `actions`, `runs`. Each has `user_id` and row-level security. Realtime is on for all three.
+
+**Pages:** `/` (judge page), `/boards/a` to `/boards/e`, `/docs`, `/docs/[id]`, `/calendar`.
 
 ---
 
-## S. Setup (do first, together, 20 minutes)
+## S. Setup (together, 15 minutes)
 
 - [x] **S1. GitHub repo.** Done: `arav-rithvik/AgentOS`.
 - [ ] **S2. App.** Arav: run `npx create-next-app@latest app --ts --tailwind --app --yes` in the repo. Push.
-- [ ] **S3. Supabase project.** Arav: make a new project. Redeem the credit code. In Authentication, Email: turn off "Confirm email".
-- [ ] **S4. Keys.** Both: make `app/.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY`. Do not commit this file. Share keys in person, not in chat.
-- [ ] **S5. Vercel.** Rithvik: import the repo in Vercel. Set root directory to `app`. Add the same three keys. Check the empty app opens at the Vercel URL.
-- [ ] **S6. Folders.** Arav owns `app/lib/`, `app/app/api/`, `app/supabase/`. Rithvik owns `app/app/page.tsx`, `app/components/`, `app/app/globals.css`. Do not edit the other person's files.
+- [ ] **S3. Supabase project.** Arav: make a new project. In Authentication, Email: turn off "Confirm email".
+- [ ] **S4. Keys.** Both: make `app/.env.local` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY`. Do not commit it.
+- [ ] **S5. Vercel.** Rithvik: import the repo. Root directory `app`. Add the three keys. Check the URL opens.
+- [ ] **S6. Folders.** Arav owns `app/lib/`, `app/app/api/`, `app/supabase/`. Rithvik owns all pages and `app/components/`.
 
 ---
 
 ## A. Arav: the engine
 
-### A1. Database (15 min)
-- [ ] **A1.1** Write `supabase/schema.sql` with the four tables from the contract. Each table has a `user_id` column.
-- [ ] **A1.2** Add row-level security: a user can only see rows where `user_id` is their id.
-- [ ] **A1.3** Add a SQL function `reset_world()` that makes one world and fills it with demo data: 5 events, 3 mails (one from Sam asking to move the 1:1), 2 files, 4 contacts.
-- [ ] **A1.4** Turn on Realtime for `objects`, `actions`, `runs`.
-- [ ] **A1.5** Paste the file in the Supabase SQL editor and run it.
-- **Done when:** you call `reset_world()` in the SQL editor and see rows in `objects`.
+### A1. Database and demo data (10 min)
+- [ ] **A1.1** Write `supabase/schema.sql`: tables `objects`, `actions`, `runs`, with `user_id` and row-level security.
+- [ ] **A1.2** Add a SQL function `reset_world()` that fills the world for the signed-in user: 5 boards with about 6 jobs each. Some jobs are posted today, some are old. Put 3 or 4 of the same job on more than one board, so dedupe has work to do. Add 2 calendar events.
+- [ ] **A1.3** Turn on Realtime for the three tables. Run the file in the Supabase SQL editor.
+- **Done when:** `reset_world()` puts about 32 rows in `objects`.
 
-### A2. Kernel (25 min) — Scenes 1, 2
-The kernel is the one place that reads and changes the world.
-- [ ] **A2.1** Write `lib/kernel.ts` with `query`, `get`, `create`, `update`, `remove`.
-- [ ] **A2.2** `query(type, where)` filters objects by type and by field values. This is the "queryable data".
-- [ ] **A2.3** Each call saves one row in `actions`: the op, the key, and `before` and `after` for a change.
-- **Done when:** one `query` call returns tomorrow's events, and one `update` call changes an event and makes one `actions` row.
+### A2. Drivers and manifest (15 min)
+- [ ] **A2.1** Write `lib/manifest.ts`: the manifest object from the contract.
+- [ ] **A2.2** Write `lib/drivers.ts`: one function `call(app, action, args)`. `jobs.list` reads jobs for that board and filters by `query` and `posted`. `docs.create` inserts a doc. `events.list` and `events.create` do the same for the calendar.
+- [ ] **A2.3** Each `call` saves one row in `actions` with the args, the receipt and the time in ms. It returns the receipt and the data.
+- **Done when:** `call("board_a", "jobs.list", { posted: "today" })` returns jobs and makes one `actions` row.
 
-### A3. Agent loop (30 min) — Scenes 1, 2
-- [ ] **A3.1** Write `lib/agent.ts`. Give Claude five tools that call the kernel: `query_objects`, `get_object`, `create_object`, `update_object`, `delete_object`.
-- [ ] **A3.2** Tell Claude the object types and fields in the system prompt, so it can query without looking first.
-- [ ] **A3.3** Loop until Claude stops calling tools. Add up tokens, steps and time. Save them in `runs`.
+### A3. Agent loop (20 min)
+- [ ] **A3.1** Write `lib/agent.ts`. Put the manifest in the system prompt. Give Claude one tool: `call(app, action, args)`.
+- [ ] **A3.2** Tell Claude to make independent calls in the same turn, so the 5 board queries go out at once. Run those calls in parallel on the server.
+- [ ] **A3.3** Loop until Claude stops calling tools. After each step, update the `runs` row with tokens, steps and time.
 - [ ] **A3.4** Write `app/api/run/route.ts`. It reads the user token, so row-level security applies to the agent.
-- **Done when:** a `curl` call to `/api/run` with the Scene 1 prompt gives the correct answer, and the Scene 2 prompt moves the event and adds a sent mail.
+- **Done when:** a `curl` call with the hero prompt makes 5 `jobs.list` actions, 1 `docs.create` action, and a doc with a ranked, deduped list.
 
-### A4. The baseline for Scene 3 (20 min, after the merge)
-- [ ] **A4.1** Open the live page in a browser. Use a computer-use agent (Grok Bot, or Claude in Chrome) with the Scene 2 prompt. It must do the task by clicking the page.
-- [ ] **A4.2** Record the screen. Time it with a clock. Count its steps.
-- [ ] **A4.3** Run the same prompt on AgentOS three times. Write down time, steps and tokens for each run.
-- [ ] **A4.4** Give Rithvik the numbers for the compare bars.
-- **Done when:** you have a recording and one row of numbers for each side.
-
-Note: for A4.1 the World column needs working edit controls (see R2.4), or the pixel agent has nothing to click.
+### A4. Baseline and numbers (20 min, after the merge)
+- [ ] **A4.1** Open the live mock board pages. Give the hero prompt to a computer-use agent. Record the screen.
+- [ ] **A4.2** Write down: seconds, count of screenshots or steps, and if it finished.
+- [ ] **A4.3** Run the hero prompt on AgentOS 3 times. Write down seconds, steps, tokens and success for each.
+- [ ] **A4.4** Give Rithvik the numbers and the recording.
+- **Done when:** the eval table has real numbers for both sides.
 
 ---
 
-## R. Rithvik: the page and the demo
+## R. Rithvik: the pages and the demo
 
-Build R1 to R5 with fake data first. Put the fake data in one file, `components/fake.ts`, in the contract shapes.
+Build with fake data first, in `components/fake.ts`, in the contract shapes.
 
-### R1. Page layout (15 min)
-- [ ] **R1.1** One page, dark, three columns: World, Agent, Activity. A top bar with the name and a "Reset world" button.
-- [ ] **R1.2** Each column scrolls by itself. The page does not scroll.
-- **Done when:** the three empty columns show at the Vercel URL.
+### R1. Mock apps (20 min)
+- [ ] **R1.1** `/boards/[id]`: a job board page that lists that board's jobs, with a search box. Give each of the 5 boards a different name and colour, so they look like 5 sites.
+- [ ] **R1.2** `/docs` and `/docs/[id]`: a list of docs and one doc. `/docs` also has a "New doc" form, so the pixel agent can write a doc.
+- [ ] **R1.3** `/calendar`: a simple list of events. Cut this first if late.
+- **Done when:** each page shows fake data at the Vercel URL.
 
-### R2. World column (25 min) — Scenes 0, 2, 3
-- [ ] **R2.1** Show events as cards, grouped by day, sorted by time.
-- [ ] **R2.2** Show mail (inbox and sent), files and contacts as cards.
-- [ ] **R2.3** When an object changes, flash that card for one second.
-- [ ] **R2.4** Add simple human controls: click an event to edit its time, and a "Compose" form to send a mail. The pixel agent in Scene 3 uses these.
-- **Done when:** changing one value in `fake.ts` moves the card and flashes it.
+### R2. Judge page (35 min)
+- [ ] **R2.1** Top: the one-liner and a slot for the race video.
+- [ ] **R2.2** Playground: 3 preset tasks and a free-text box, with the hint "Try anything that fits: jobs, boards, docs." A Run button.
+- [ ] **R2.3** Split screen. Left: the baseline recording, with its timer and token count. Right: the live AgentOS log, one line for each typed call, with a live token counter and timer.
+- [ ] **R2.4** Click a log line to show its receipt.
+- [ ] **R2.5** Bottom: the eval table. Rows: task, agent, tokens, seconds, steps, success. Mark each number as "measured" or "estimated".
+- **Done when:** the page plays a fake run from `fake.ts`.
 
-### R3. Agent column (25 min) — Scenes 0, 1, 2
-- [ ] **R3.1** A prompt box, a Run button, and the two example prompts to click (Scene 1 and Scene 2).
-- [ ] **R3.2** A panel "What the agent sees": the world as coloured JSON, with a rough token count (characters divided by 4).
-- [ ] **R3.3** Run stats: status, seconds, tokens, steps, and the agent's answer.
-- **Done when:** the JSON panel shows the fake world and the stats show a fake run.
+### R3. Login (10 min)
+- [ ] **R3.1** A "Use demo account" button that signs in with Supabase Auth, then calls `reset_world()` if the world is empty.
+- **Done when:** one click shows the judge page.
 
-### R4. Activity column (15 min) — Scenes 1, 2
-- [ ] **R4.1** One row for each activity, newest first.
-- [ ] **R4.2** For a `query`: show the filter and the count. For a change: show the key and what changed (`before` to `after`).
-- [ ] **R4.3** A red row with the error when `ok` is false.
-- **Done when:** the fake rows show a query, an update and a create.
-
-### R5. Compare panel (15 min) — Scenes 0, 3
-- [ ] **R5.1** A panel "Pixels vs data": two bars for time and two bars for steps. Read the numbers from one small object, so Arav's measured numbers go in fast.
-- [ ] **R5.2** Next to it: a screenshot image with its token cost, against the JSON with its token count.
-- **Done when:** the bars show placeholder numbers that are clearly marked as placeholders.
-
-### R6. Login (10 min)
-- [ ] **R6.1** An email and password form with Supabase Auth.
-- [ ] **R6.2** A "Use demo account" button, so judges can get in with one click.
-- **Done when:** the button signs in and shows the page.
-
-### R7. Demo and submission (from 4:30)
-- [ ] **R7.1** Write the words for each scene from the demo table.
-- [ ] **R7.2** Record the video: MP4, under 100 MB, 2 to 3 minutes.
-- [ ] **R7.3** Take 4 to 6 screenshots.
-- [ ] **R7.4** Write the README: what it is, how to run it, the demo login.
-- [ ] **R7.5** Fill the submission page: title, description, repo URL, demo URL, demo notes with the login.
-
-### R8. Voice (only if there is time)
-- [ ] **R8.1** A mic button that fills the prompt box with the browser's speech recognition.
+### R4. Demo and submission (from 4:30)
+- [ ] **R4.1** Record the video: MP4, under 100 MB, 2 to 3 minutes, from the video table.
+- [ ] **R4.2** 4 to 6 screenshots.
+- [ ] **R4.3** README: what it is, how to run it, the demo login, what is hand-modeled.
+- [ ] **R4.4** Submission page: title, description, repo URL, demo URL, demo notes.
 
 ---
 
-## M. Merge (3:30 PM, together, 30 minutes)
+## M. Merge (3:40 PM, together, 20 minutes)
 
-- [ ] **M1.** Rithvik: replace `fake.ts` with real reads from Supabase (`objects`, `actions`, `runs`).
-- [ ] **M2.** Rithvik: add Realtime, so the page updates when a row changes.
-- [ ] **M3.** Rithvik: connect Run to `/api/run`, "Reset world" to `reset_world`, and the R2.4 edit controls to Supabase writes.
-- [ ] **M4.** Both: run Scenes 1 and 2 on the Vercel URL, two times.
-- [ ] **M5.** Both: sign in with the demo account in a private window. Check a judge can do Scene 2.
+- [ ] **M1.** Rithvik: replace `fake.ts` with reads from Supabase (`objects`, `actions`, `runs`) and add Realtime on `actions` and `runs`.
+- [ ] **M2.** Rithvik: connect Run to `/api/run`.
+- [ ] **M3.** Both: run the hero task on the Vercel URL, two times.
+- [ ] **M4.** Both: open a private window, use the demo account, run a preset. A judge must be able to do this.
+- [ ] **M5.** Arav: make the repo public. First remove line 91 of `Supabase-Select-2026-Hackathon.md` (it has private details).

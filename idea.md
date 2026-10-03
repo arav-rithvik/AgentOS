@@ -1,88 +1,155 @@
-# AgentOS - base idea
+# AgentOS - idea.md (v3)
 
-Target: Supabase Select 2026 Hackathon (Grand Prize). Submissions due 5:30 PM PDT.
-Note: you can only win one prize. Aim for Grand Prize, do not optimize for a sponsor prize.
+Supabase Select hackathon. Submissions due today, 5:30 PM PT.
 
 ## One-liner
-The computer for agents. An operating system whose native interface is structured state, not pixels.
 
-Pitch line: every agent today is a person feeling around a dark room by touching pixels. AgentOS turns the lights on and hands the agent the room as data.
+Browser agents are better tourists on the web. We built the computer every agent plugs into.
 
-## Scope of the hackathon build (decided 2:15 PM, Oct 3)
-The build and the demo cover one thing: **the world as queryable data, not pixels.** An agent queries and changes typed objects directly, and we measure it against a pixel agent on the same task.
+AgentOS replaces the screen and mouse with objects and function calls, for every app, under one auth layer and one action log.
 
-Not built: receipts with verification, undo, forking, scoped identity. These are roadmap. Do not build them. In the demo, present them as "next", not as working features.
+## The idea, simply but technically
 
-## Problem
-- Operating systems (Linux, macOS, Windows) are built for humans.
-- Computer-use agents (Grok Bot, Muse, Instinct and others) first used screenshots and pixel matching, now use the accessibility tree.
-- Both are workarounds. The OS itself is not designed for agents, so agents burn tokens, guess at coordinates, and break when a UI shifts.
+Every computer today ends at a screen. Windows, buttons and menus exist for human eyes. So a computer-use agent does this loop 40-60 times per task: screenshot, look at the picture, guess pixel coordinates, click, screenshot again to check.
+
+AgentOS removes the screen from the loop. The OS exposes each app as data and functions. Carry one example through, the calendar:
+
+- Human: sees boxes, clicks "new event".
+- Computer-use agent: screenshots, guesses "new event" is at pixel (740,382), clicks, hopes.
+- AgentOS: `calendar.events.list()` returns an array of event objects as JSON. `calendar.events.create({title, date})` returns a receipt with the event ID. No screen exists anywhere in this loop.
+
+The loop is: query state as data -> act with typed calls -> get a receipt.
+
+Not a menu of options (that is an IVR, press 1 press 2). The agent can ASK the world questions ("what is due this week?") and gets data back, and it composes typed actions with arguments.
+
+Why it is an OS and not just an API: an API is one app's private interface. AgentOS is the layer every app plugs into the same way: one manifest to discover apps, one query style, one call style, one OAuth system, one log. Windows gave every human app the same windows and mouse. AgentOS gives every agent the same objects, calls and receipts.
+
+What this buys:
+- Faster: ~6-8 JSON calls instead of ~60 screenshot cycles.
+- Cheaper: ~2k tokens instead of ~40k (JSON is small, screenshots are huge).
+- More reliable: pixels shift on every redesign, object schemas don't.
+- Verifiable: every call returns a receipt, so the agent knows what happened instead of re-screenshotting.
+
+(The numbers above are targets and rough estimates. The eval section is where they become measured.)
 
 ## Why now
-1. Computer-use agents only went mainstream this year, so the pain is only now visible at scale.
-2. MCP just standardized agent-to-tool calls, so "everything is a tool call" is viable.
-3. Secure delegated auth (Supabase agent OAuth, shipped yesterday) was the missing piece. An agent OS with no safe way into a user's accounts is a toy.
 
-## The product
-- Every option available to the agent is communicated as JSON (typed objects, not rendered UI).
-- Mail is message objects, calendar is event objects: typed and queryable.
-- A selection layer lets the agent choose among options (voice brain dump mentioned "something like Jev" - unclear, see open questions).
-- An LLM (Claude) drives it.
-- Supabase is the backing layer: Postgres holds the objects, Auth signs the user in, row-level security keeps each user's world private, Realtime shows changes live.
+- Agents are capable enough to compose typed calls reliably, but they are still forced through human UIs.
+- Screenshot loops are the dominant cost and failure point in computer use today.
+- Supabase gives us the pieces to build the OS layer fast: a live queryable store for app state, auth, realtime streaming, and agent-OAuth for sessions.
 
-## What agents want from an agent-native OS (target-user evidence)
-Source: the agent's own account of daily operation.
-Item 1 is the hackathon build. Items 2 to 5 are roadmap.
-1. The world as data, not pixels. UI tasks mean guessing at coordinates on a screenshot. That is most of token burn and most failure modes.
-2. Receipts. After acting, the agent must re-read the world and infer whether it worked. Every call should return intended vs actual change. Kills the "did that send?" class of bugs.
-3. Undo. Agents have no cmd-Z. Snapshot the world, act, roll back. With a checkpoint underneath, agents act far more boldly.
-4. Forking. Spin up N copies of the environment, try N approaches in parallel, keep the one that works.
-5. Scoped identity. No raw passwords. Revocable, auditable grants per service (maps directly to Supabase OAuth).
+## Architecture
 
-Key insight: the killer of computer use is reliability, not speed. Structured state lets the agent verify its own actions.
+**Substrate.** Every site already exposes everything, to its own frontend. When Schoology shows assignments, the browser fetched them as JSON from Schoology's internal API. AgentOS sits at the browser/OS layer where that already happens. Three sources of truth, no cooperation needed from the site:
+1. The DOM: structure. Every page has it.
+2. The site's own network calls: behavior. The frontend's API traffic is visible at the OS layer, so AgentOS learns "GET /assignments returns assignment objects" by watching the app work.
+3. One LLM pass per site compiles those into clean objects and actions. The result is cached, shared, and regenerated when the UI changes.
 
-## Differentiators
-- vs MCP: MCP wraps existing human apps one at a time, so the agent is limited to whatever someone wrote a server for. AgentOS is the whole environment as structured state.
-- vs sandboxes: never use the word "sandbox". Position as "the computer for agents".
-- vs screenshot / accessibility-tree computer use: no pixel matching, far fewer tokens, verifiable actions.
-- Roadmap, not built: an OS-level action log with receipts, undo, forking and scoped identity.
+**Drivers.** A driver is the compiled description of one app: objects (courses, assignments) and actions (list, get, create). Generated by the OS, not hand-written by anyone. For the hackathon we hand-model the demo apps (see open questions).
 
-## Demo plan
-One hero task, full loop:
-1. Sign in with Supabase Auth.
-2. Ask: the agent answers a question by querying the world.
-3. Act: multi-step execution through structured state.
-4. Race: the same task by a pixel agent on the same page, with measured time and steps on screen.
-Record a backup video first. Voice in is a stretch only.
-The scene-by-scene plan is in `TASKS.md`.
+**Manifest.** The index of all connected apps' drivers. The OS builds it from what is connected, the same way a phone home screen is built from what is installed. "Installed" = accounts the user connected. The agent reads the manifest at boot instead of wandering around discovering things.
+
+**Auth.** Supabase agent-OAuth. The user connects an account once. The agent asks the auth layer for a session and gets a live token in one call. The app opens already logged in. No login-page screenshot, no password in the agent's context, no 2FA fumble.
+
+**State.** App state is synced into a live, queryable store (Supabase). The agent queries state. It does not re-perceive a page every step.
+
+**Receipts and log.** Every call returns a typed receipt (IDs, links, status). Every call is appended to one action log. The log feeds the judge page's streaming view and the eval numbers.
+
+## Pipeline walkthrough (hero task: Internship hunt)
+
+Prompt: "Check these 5 job boards for new ML internships posted today, dedupe them, rank them, drop the list in a doc."
+
+1. Prompt lands. Claude reads the manifest. The 5 job boards and docs are all present (calendar is the 3rd locked app, used by the alternate task).
+2. Auth. Agent requests a session for each board from the auth layer. Supabase agent-OAuth returns a live token per board in one call each. No login-page screenshots, no passwords in context.
+3. Read, in parallel. The OS loads each board and compiles DOM + the site's API traffic into typed objects. Agent runs 5 queries at once, e.g. `board_a.jobs.list(query: "ML intern", posted: today)`, each returning `[{title, company, location, url, posted}, ...]`. No pixels.
+4. Dedupe and rank. The agent merges the 5 result sets, drops duplicates (same company + title), and ranks them against the user's criteria.
+5. Act. `docs.create({title: "ML internships - today", body: ranked list})`. Receipt returns the doc link.
+6. Report. "N new postings across 5 boards, M after dedupe, ranked list here." Every call has a receipt in the log.
+
+Why it wins: 5 sites in parallel is where pixel agents die. A baseline grinds through 50+ screenshot cycles across 5 logins and then still has to drive the doc app visually. We run 5 queries in parallel and one doc write. Scale is the drama, and every judge has felt job-board pain.
+
+## Hero task choice and alternates
+
+Locked demo apps: job boards, docs, calendar.
+
+- **Hero: Internship hunt** (above). Winner.
+- **Alternate: Trip home.** "Find a train to LA Friday after 4pm under $60, put it on my calendar with a reminder to leave for the station." Most cinematic (calendar event popping in is a great visual), but only 2 apps and less scale.
+- **Rejected: Receipt roundup.** "Pull every receipt from my inbox this month, total them, put them in a sheet." Business-legible, but reading email is the MCP-adjacent trap. Skip.
+
+Rule still holds: the hero task must SPAN app types (web read -> doc/calendar write). Never demo a pure-web or pure-Gmail task. A pure-web demo makes us look like a worse browser-use.
+
+## Positioning
+
+**Vs browser agents.**
+- The browser is one app, and real tasks cross apps. A browser agent hits the edge of the tab and stops. It cannot finish the hero task. The web is part of the computer, not the computer.
+- A browser agent is a guest. It brings its own auth, logging and state handling, and re-solves identity and permissions per task, per site. An OS moves all of that below every app: one OAuth system, one manifest, one action log, one undo.
+- Chrome is an app that runs on an OS. A browser agent is a smarter user of that one app. AgentOS is the layer Chrome itself would run on.
+- Line: "Browser agents are better tourists on the web. We're the country."
+
+**Vs MCP.** MCP asks every developer on earth to build agents a door. AgentOS goes through the door the site's own frontend already uses every day. No permission needed. Who makes the manifest is not a person: the OS compiles it from connected accounts.
+
+**Scoped identity.** One spoken line in the pitch, not a demo beat.
+
+## Demo plan, build order, time boxes
+
+Steering decisions: demo core is the pixels-vs-data race with token counters ONLY. Undo is an optional 10-second closer, only if the build is under 30 min. Forking is cut. Scoped identity is one spoken line.
+
+Build order. It is already 2:45 PM with submissions at 5:30 PM, so the boxes below are compressed to fit ~2h45m including recording and buffer. Cut from the bottom if behind:
+1. Driver + manifest for the 3 demo apps (hand-modeled: job boards, docs, calendar), typed calls returning receipts. ~30 min.
+2. Agent loop over the manifest: query -> typed call -> receipt, with action log writing to Supabase. ~20 min.
+3. Baseline: a screenshot-loop agent on the same task, with token and time counters; record it once for the page. ~20 min.
+4. Judge link page: presets + free-text box, streaming action log, live token counter, side-by-side with baseline, receipts view, eval table. ~35 min.
+5. Record the video. ~25 min.
+6. Cheap bonus: UI-shift gag (change the page layout; baseline breaks, AgentOS doesn't). ~10 min.
+7. Optional: 10-second undo closer, only if the build is under 30 min.
+8. Submit with buffer before 5:30 PM.
+
+Video structure:
+- Cold open on the slow baseline agent grinding through screenshots.
+- The race: pixels vs data, token counters visible.
+- Voice-in opener for the AgentOS run (speak the prompt).
+- UI-shift gag as a short bonus.
+- One-line close ("better tourists / we're the country").
+
+## Judge webpage spec
+
+- **Top:** hero one-liner + the race video.
+- **Live playground:** 3 preset tasks + a free-text box. Judge picks one and hits run. The free-text box is gated to the mock environment (job boards, docs, calendar) so a judge cannot send it somewhere we did not build. Hint text: "Try anything that fits: jobs, boards, docs."
+- **Split screen:** LEFT is the baseline's pre-recorded run (we cannot run the baseline live per judge, so record it once). RIGHT is AgentOS running LIVE for that judge. Streaming action log, each line a typed call. Token counters ticking on both sides.
+- **Receipts:** after the run, click any action in the log to see its receipt (intended vs actual).
+- **Bottom: eval table.** Every task, both agents, tokens, time, success rate over 5 runs, raw logs linked. Failures included. The table being honest is what makes the numbers believed.
 
 ## Eval metrics
-- Task completion time, AgentOS vs screenshot-loop baseline.
-- Token count, same task, both approaches. This is the number judges cannot argue with (screenshot loops are claimed to burn 10-100x more; measure it, do not assert it).
-- Success rate over repeated runs, to counter "5 seconds is cherry-picked".
-- Optional: UI-shift robustness (change layout, show baseline breaks, AgentOS does not).
 
-## Judging angles and expected attacks
-1. "This is just a sandbox / MCP already does this." Answer: see Differentiators.
-2. "5 seconds is cherry-picked." Answer: live demo, plus tokens alongside time, plus repeated runs.
-3. "Why not 6 months ago?" Answer: see Why now.
-Fit: the prompt is roughly "make something agents want", and this is what agents run on. Demoing Supabase's newest feature (agent OAuth) back to them helps.
-TODO: paste the official judging criteria from Supabase-Select-2026-Hackathon.md here and map each criterion to a feature. (Not available to the author of this file.)
+Measured, not asserted. Run the same tasks on both agents and log:
+- Tokens used (input + output, including screenshots for the baseline).
+- Wall-clock time.
+- Number of model calls / steps.
+- Success rate over N runs per task (define success per task before running).
+Report all runs, including failures. Publish the task list and raw logs on the judge page.
 
-## Resources available
-- Anthropic: $100 API credits
-- OpenAI: $100 API credits (redeem via the link Arav has)
-- Vercel: $30 AI Gateway credits
-- Stripe: info link Arav has
-- Supabase: $100 credits
-- DeepMind: voice credits
-Redemption codes are in Arav's original message; keep them out of the repo.
+## Judge attacks and answers
+
+- **"This is just MCP."** MCP needs every site to opt in and build a server. We need no cooperation: we compile drivers from the DOM and the frontend's own API traffic. It also covers the whole computer (files, calendar, mail), under one auth layer and log.
+- **"Browser agents already exist."** They are guests in one app. They cannot cross into calendar or files, and they re-solve auth and logging per task. Show the hero task spanning apps and the race numbers.
+- **"This is a wrapper per site."** Drivers are generated by the OS, cached, and regenerated on UI change, not hand-written per site. Honest limit: today's demo apps are hand-modeled.
+- **"You cherry-picked the task."** Offer free-text on the judge page, publish the task list, raw logs and failures, and report success rate alongside tokens and time.
+- **"Why not 6 months ago?"** Models only recently became reliable at composing typed calls and generating drivers from DOM + traffic, and the agent-OAuth and realtime state pieces now exist off the shelf.
+- **"What about sites that fight this?"** Heavy server-rendered sites and anti-bot walls are harder. Say so plainly. The architecture does not depend on any site playing along.
+
+## Resources
+
+- Supabase: Postgres for state and action log, realtime for the streaming log, auth/agent-OAuth for sessions.
+- Claude (or similar) as the agent and as the driver compiler.
+- Browser automation with network-traffic capture for the substrate.
+- Calendar and docs APIs for the demo write targets.
+- Hackathon redemption codes are tracked separately and are not in this file.
 
 ## Open questions
-- Exact scope of the MVP: which objects (mail, calendar, files?) are real vs mocked?
-- What is "Jev" in the voice dump (likely a transcription error)? What picks options?
-- Which hero task is the most legible in 2 minutes?
-- Which baseline do we compare against (Claude computer use? accessibility-tree agent)?
-- Undo, fork and scoped identity: answered, not in scope.
-- Who is on the team and present in the room?
-- Judging criteria mapping (see TODO above).
+
+- Which 5 job boards (or mock boards), and which are hand-modeled vs auto-compiled? Apps are locked: job boards, docs, calendar.
+- How much driver compilation do we show live vs pre-cached?
+- Real job boards or mock boards with the same shape? Mock is safer for the free-text gate and repeatable runs.
+- What is the baseline agent (an existing computer-use agent or our own screenshot loop)? It must be fair and reproducible.
+- Does undo fit in the time box?
+- Exact success criteria per task for the eval.
