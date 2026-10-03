@@ -5,7 +5,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 // Browser client for Realtime. Anon key only; RLS allows reads, writes go through /api/run.
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-export const LIVE = Boolean(URL && KEY);
+export const LIVE = Boolean(URL);
 
 let sb: SupabaseClient | null = null;
 export function browser() {
