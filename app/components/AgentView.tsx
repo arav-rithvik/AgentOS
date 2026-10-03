@@ -54,7 +54,7 @@ export default function AgentView({ lines, run }: { lines: Line[]; run: Run | nu
   }
 
   return (
-    <div className="flex h-[680px] flex-col overflow-hidden rounded-[14px] border" style={{ background: "#050505", borderColor: "var(--line-2)" }}>
+    <div className="flex h-[680px] flex-col overflow-hidden border" style={{ background: "#050505", borderColor: "var(--line-2)" }}>
       <pre ref={ref} className="scroll-thin h-full overflow-auto whitespace-pre-wrap break-all p-5 font-mono text-[11.5px] leading-[1.6]" style={{ color: "#d6e4dc" }}>
         {out.map((t, i) => (
           <div key={i} style={{ color: t.startsWith("✓") ? "var(--green)" : t.startsWith(" →") ? "#7d8a83" : t.startsWith("agentos") ? "var(--green)" : undefined }}>

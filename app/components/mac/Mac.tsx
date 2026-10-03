@@ -191,7 +191,7 @@ export default function Mac({ objects, live, run }: { objects: Obj[]; live: Live
   const geo = max ? { left: 8, top: 31, right: 8, bottom: 78 } : { left: pos.x, top: pos.y, width: "78%", height: 470 };
 
   return (
-    <div ref={root} className="relative h-[680px] select-none overflow-hidden [&_[role=button]]:cursor-pointer [&_button]:cursor-pointer" style={{ borderRadius: 14, backgroundImage: `url(${WALLPAPER})`, backgroundSize: "cover", backgroundPosition: "center", fontFamily: SANS, boxShadow: "0 0 0 1px #2a2a2a", WebkitFontSmoothing: "antialiased" }}>
+    <div ref={root} className="relative h-[680px] select-none overflow-hidden [&_[role=button]]:cursor-pointer [&_button]:cursor-pointer" style={{ borderRadius: 0, backgroundImage: `url(${WALLPAPER})`, backgroundSize: "cover", backgroundPosition: "center", fontFamily: SANS, boxShadow: "0 0 0 1px #2a2a2a", WebkitFontSmoothing: "antialiased" }}>
       {/* notification: AgentOS finished, go check */}
       {note && run && (
         <button

@@ -73,7 +73,7 @@ export const seedObjects: Obj[] = [
   { app: "mail", type: "mail", key: "mail_3", data: { folder: "inbox", from: "Fade & Co.", email: "hello@fadeandco.com", to: "rithvik@agentos.dev", subject: "It's been 4 weeks since your last cut", body: "Book online any time. Marcus has openings this weekend.", at: "10:05 AM", unread: false } },
   { app: "mail", type: "mail", key: "mail_4", data: { folder: "inbox", from: "Gradhire", email: "no-reply@gradhire.com", to: "rithvik@agentos.dev", subject: "Your application was received", body: "Thanks for applying to Speech ML Intern at Echoform.", at: "Yesterday", unread: false } },
   { app: "docs", type: "doc", key: "doc_1", data: { title: "Resume notes", body: "Keep it to one page. Lead with shipped projects." } },
-  { app: "docs", type: "doc", key: "doc_2", data: { title: "Hackathon ideas", body: "AgentOS: the computer for agents." } },
+  { app: "docs", type: "doc", key: "doc_2", data: { title: "Hackathon ideas", body: "AgentOS: the OS for agents." } },
   { app: "calendar", type: "event", key: "evt_1", data: { title: "Physics 2 study block", start: "2026-10-03T19:00", end: "2026-10-03T20:00" } },
   { app: "calendar", type: "event", key: "evt_2", data: { title: "Team sync with Arav", start: "2026-10-04T10:00", end: "2026-10-04T10:30" } },
 ];

@@ -35,15 +35,15 @@ export default function Compare({ run, calls }: { run: Run | null; calls: number
 
 function Box({ name, by, logo, vals, hot }: { name: string; by: string; logo: { logo: string; bg: string; pad: number } | null; vals: { ms: number | null; tokens: number | null; actions: number | null; screenshots: number | null }; hot?: boolean }) {
   return (
-    <div className="rounded-[14px] border p-4" style={{ borderColor: hot ? "var(--green)" : "var(--line-2)", background: "var(--panel)" }}>
+    <div className="border p-4" style={{ borderColor: hot ? "var(--green)" : "var(--line-2)", background: "var(--panel)" }}>
       <div className="flex items-center gap-2.5">
         {logo ? (
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full" style={{ background: logo.bg, padding: logo.pad * 0.7 }}>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden" style={{ background: logo.bg, padding: logo.pad * 0.7 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={logo.logo} alt="" className={logo.pad ? "h-full w-full object-contain" : "h-full w-full object-cover"} />
           </span>
         ) : (
-          <span className="mono flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold text-black" style={{ background: "var(--green)" }}>
+          <span className="mono flex h-8 w-8 shrink-0 items-center justify-center text-[13px] font-semibold text-black" style={{ background: "var(--green)" }}>
             OS
           </span>
         )}

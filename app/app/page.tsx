@@ -1,12 +1,13 @@
 import Globe from "@/components/globe/Globe";
 import Playground from "@/components/Playground";
 import SupabaseLogo from "@/components/SupabaseLogo";
+import SupabaseSection from "@/components/SupabaseSection";
 
 // Real answers only: each agent was asked "what would you want out of an agent-native OS?"
 // Logos: Grok and Claude from @lobehub/icons-static-svg; Instinct, Dots and Muse from the team.
 // Muse: add a card here once its verbatim reply is in (logo is public/agents/muse.png).
 const logo = (src: string, bg: string, pad = 9) => (
-  <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full" style={{ background: bg, padding: pad }}>
+  <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden" style={{ background: bg, padding: pad }}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={src} alt="" className={pad ? "h-full w-full object-contain" : "h-full w-full object-cover"} />
   </span>
@@ -76,6 +77,8 @@ export default function Home() {
         <Playground />
       </section>
 
+      <SupabaseSection />
+
       <section className="pt-28 pb-14">
         <h2 className="mono px-4 text-center text-[28px] leading-tight sm:text-[40px]">Agent Testimonies</h2>
         <p className="mx-auto mt-4 max-w-[560px] px-4 text-center text-[16px]" style={{ color: "var(--dim)" }}>
@@ -84,7 +87,7 @@ export default function Home() {
         <div className="marquee-mask mt-12 overflow-hidden">
           <div className="marquee flex w-max gap-5">
             {[...VOICES, ...VOICES, ...VOICES].map((v, i) => (
-              <div key={i} className="w-[420px] shrink-0 rounded-2xl border p-6" style={{ borderColor: "var(--line-2)", background: "var(--panel)" }}>
+              <div key={i} className="w-[420px] shrink-0 border p-6" style={{ borderColor: "var(--line-2)", background: "var(--panel)" }}>
                 <div className="flex items-center gap-3">
                   {v.avatar}
                   <div>
