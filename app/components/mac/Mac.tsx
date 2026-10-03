@@ -13,7 +13,7 @@ const WALLPAPER = "/mac/wallpaper-day.jpg";
 const SITES: Record<Site, { title: string; host: string; path: string; short: string }> = {
   mail: { title: "Inbox (2) - rithvik@agentos.dev - Mail", host: "mail.agentos.dev", path: "/mail/u/0/#inbox", short: "Mail" },
   docs: { title: "Docs", host: "docs.agentos.dev", path: "/document/u/0/", short: "Docs" },
-  calendar: { title: "Calendar - Week of September 27, 2026", host: "calendar.agentos.dev", path: "/r/week/2026/10/3", short: "Calendar" },
+  calendar: { title: "Calendar - October 2026", host: "calendar.agentos.dev", path: "/r/week/2026/10/3", short: "Calendar" },
   cuts: { title: "Fade & Co. | Book Online", host: "fadeandco.com", path: "/book", short: "Fade & Co." },
   jobs: { title: "Internships | Northwind Jobs", host: "northwindjobs.com", path: "/internships", short: "Northwind Jobs" },
 };
@@ -130,7 +130,12 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
   }, [open]);
 
   const go = (s: Tab) => {
-    setTabs((t) => (t.includes(s) ? t : [...t, s]));
+    // A site opened from a New Tab page navigates that tab, like Chrome.
+    setTabs((t) => {
+      if (t.includes(s)) return t;
+      if (active === "newtab" && s !== "newtab" && t.includes("newtab")) return t.map((x) => (x === "newtab" ? s : x));
+      return [...t, s];
+    });
     setActive(s);
     openWin();
   };
@@ -141,16 +146,17 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
   }, [live]);
 
   const closeTab = (t: Tab) => {
-    setTabs((ts) => {
-      const i = ts.indexOf(t);
-      const next = ts.filter((x) => x !== t);
-      if (!next.length) {
-        setOpen(false);
-        return ["newtab"];
-      }
-      if (t === active) setActive(next[Math.max(0, i - 1)]);
-      return next;
-    });
+    const i = tabs.indexOf(t);
+    const next = tabs.filter((x) => x !== t);
+    if (!next.length) {
+      // Closing the last tab closes the window; Chrome reopens to a New Tab.
+      setOpen(false);
+      setTabs(["newtab"]);
+      setActive("newtab");
+      return;
+    }
+    setTabs(next);
+    if (t === active) setActive(next[Math.min(i, next.length - 1)]);
   };
 
   const drag = (e: React.MouseEvent) => {
@@ -173,16 +179,16 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
   const geo = max ? { left: 8, top: 31, right: 8, bottom: 78 } : { left: pos.x, top: pos.y, width: "78%", height: 470 };
 
   return (
-    <div className="relative h-[680px] select-none overflow-hidden" style={{ borderRadius: 14, backgroundImage: `url(${WALLPAPER})`, backgroundSize: "cover", backgroundPosition: "center", fontFamily: SANS, boxShadow: "0 0 0 1px #2a2a2a", WebkitFontSmoothing: "antialiased" }}>
+    <div className="relative h-[680px] select-none overflow-hidden [&_[role=button]]:cursor-pointer [&_button]:cursor-pointer" style={{ borderRadius: 14, backgroundImage: `url(${WALLPAPER})`, backgroundSize: "cover", backgroundPosition: "center", fontFamily: SANS, boxShadow: "0 0 0 1px #2a2a2a", WebkitFontSmoothing: "antialiased" }}>
       {/* menu bar */}
       <div className="absolute inset-x-0 top-0 z-[80] flex h-[24px] items-center justify-between pl-[14px] pr-[10px] text-[13px] text-white" style={{ background: "rgba(20,24,40,.16)", backdropFilter: "blur(24px) saturate(1.5)", WebkitBackdropFilter: "blur(24px) saturate(1.5)", textShadow: "0 0 6px rgba(0,0,0,.25)", letterSpacing: "-0.08px" }}>
-        <div className="flex min-w-0 flex-1 items-center overflow-hidden whitespace-nowrap">
-          <svg width="14" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="mr-[13px] -mt-[2px]">
+        <div className="flex h-[24px] min-w-0 flex-1 flex-wrap items-center overflow-hidden whitespace-nowrap">
+          <svg width="14" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="mr-[13px] mt-[3px] shrink-0">
             <path d={APPLE} />
           </svg>
-          <span className="shrink-0 px-[9px] font-bold">{open ? "Google Chrome" : "Finder"}</span>
+          <span className="h-[24px] shrink-0 px-[9px] font-bold leading-[24px]">{open ? "Google Chrome" : "Finder"}</span>
           {(open ? ["File", "Edit", "View", "History", "Bookmarks", "Profiles", "Tab", "Window", "Help"] : ["File", "Edit", "View", "Go", "Window", "Help"]).map((m) => (
-            <span key={m} className="hidden shrink-0 px-[9px] sm:inline">
+            <span key={m} className="hidden h-[24px] shrink-0 px-[9px] leading-[24px] sm:inline">
               {m}
             </span>
           ))}
@@ -225,7 +231,7 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
             <div className="group/tl flex h-full shrink-0 items-center gap-[8px] pl-[13px] pr-[18px]" onMouseDown={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
               {(
                 [
-                  ["#ff5f57", "#e0443e", "Close", () => setOpen(false), "M3.5 3.5l5 5M8.5 3.5l-5 5"],
+                  ["#ff5f57", "#e0443e", "Close", () => { setOpen(false); setTabs(["newtab"]); setActive("newtab"); }, "M3.5 3.5l5 5M8.5 3.5l-5 5"],
                   ["#febc2e", "#dea123", "Minimize", () => setOpen(false), "M2.8 6h6.4"],
                   ["#28c840", "#1aab29", "Zoom", () => setMax((m) => !m), "M3.4 4.3v4.3h4.3ZM8.6 7.7V3.4H4.3Z"],
                 ] as const
@@ -341,7 +347,7 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
           </div>
 
           {/* page */}
-          <div className="relative min-h-0 flex-1 overflow-hidden" style={{ background: "#fff" }}>
+          <div className="@container relative min-h-0 flex-1 overflow-hidden" style={{ background: "#fff" }}>
             {active === "newtab" && (
               <div className="flex h-full flex-col items-center overflow-auto pt-[16%]" style={{ background: "#fff" }}>
                 <div className="flex h-[46px] w-[560px] max-w-[85%] items-center gap-3 rounded-full px-5 text-[15px]" style={{ background: "#e9eef6", color: "#5e5e5e" }}>

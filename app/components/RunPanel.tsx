@@ -26,6 +26,7 @@ export default function RunPanel({ lines, run, reset, start }: { lines: Line[]; 
   const [now, setNow] = useState(0);
   const t0 = useRef(0);
   const scroller = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
   const running = run?.status === "running";
 
   // Live timer while running; the run row's ms is the source of truth when done.
@@ -39,6 +40,14 @@ export default function RunPanel({ lines, run, reset, start }: { lines: Line[]; 
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
   }, [lines.length, run?.status]);
+
+  // The prompt grows with what you type, so the whole thing is always visible.
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
+  }, [msg]);
 
   const secs = run ? (running ? now : run.ms) / 1000 : 0;
   const tokens = run ? run.input_tokens + run.output_tokens : 0;
@@ -166,6 +175,7 @@ export default function RunPanel({ lines, run, reset, start }: { lines: Line[]; 
             ❯
           </span>
           <textarea
+            ref={box}
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
             onKeyDown={(e) => {
@@ -174,9 +184,9 @@ export default function RunPanel({ lines, run, reset, start }: { lines: Line[]; 
                 submit();
               }
             }}
-            rows={2}
+            rows={1}
             placeholder='Try "book me a haircut tomorrow afternoon"'
-            className="flex-1 resize-none bg-transparent leading-[1.5] outline-none placeholder:text-[#545b6c]"
+            className="scroll-thin flex-1 resize-none overflow-auto bg-transparent leading-[1.5] outline-none placeholder:text-[#545b6c]"
             spellCheck={false}
           />
           <button disabled={running || !msg.trim()} className="rounded-[3px] px-2 py-[1px] text-[11px] disabled:opacity-40" style={{ background: GREEN, color: "#04140c" }}>

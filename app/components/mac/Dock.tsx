@@ -36,7 +36,7 @@ function Item({ app, mouseX, onClick }: { app: DockApp; mouseX: MotionValue<numb
       <p className="pointer-events-none absolute -top-[34px] hidden w-max rounded-[6px] px-[10px] py-[3px] text-[13px] group-hover:block" style={{ color: "#1d1d1f", background: "rgba(240,240,240,.82)", backdropFilter: "blur(20px)", boxShadow: "0 0 0 0.5px rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.18)" }}>
         {app.title}
       </p>
-      <motion.div ref={ref} style={{ width, height: width }} className="cursor-default">
+      <motion.div ref={ref} style={{ width, height: width }} className="cursor-pointer">
         {app.icon}
       </motion.div>
       <div className="absolute bottom-[0px] h-[4px] w-[4px] rounded-full" style={{ background: app.open ? "rgba(255,255,255,.92)" : "transparent", boxShadow: app.open ? "0 0 2px rgba(0,0,0,.35)" : undefined }} />
