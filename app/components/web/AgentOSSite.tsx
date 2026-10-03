@@ -77,7 +77,18 @@ export function AgentOSSite({ run, start, onOpen }: { run: Run | null; start: (p
             <div className="font-semibold" style={{ color: run.status === "done" ? "#0b8043" : "#c5221f" }}>
               {run.status === "done" ? "✓ Done" : "Something went wrong"}
             </div>
-            {run.result && <div className="mt-1 leading-relaxed" style={{ color: "#3c3c3c" }}>{run.result}</div>}
+            {run.result && (
+              <div className="mt-2 space-y-1 text-left leading-relaxed" style={{ color: "#3c3c3c" }}>
+                {run.result.split("\n").filter((l) => l.trim()).map((l, i) => (
+                  <div key={i}>
+                    {l
+                      .replace(/^\s*[-*]\s+/, "• ")
+                      .split(/\*\*(.+?)\*\*/)
+                      .map((t, j) => (j % 2 ? <strong key={j}>{t}</strong> : t))}
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="mt-4 text-[13px]" style={{ color: "#6b6b6b" }}>
               Don&apos;t take its word for it. Check your apps:
             </div>
