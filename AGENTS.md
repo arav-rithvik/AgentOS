@@ -28,6 +28,6 @@ Submission is due at 5:30 PM PDT on Oct 3, 2026. Building stops at 4:30 PM.
 
 ## If you are late
 
-Cut in this order: eval table over 5 runs (use 1 run), receipts click-through, calendar app, free-text box. Never cut the live hero run or the baseline recording.
+Cut in this order: third preset, eval over 5 runs (use 1 run), raw-log download, second preset. Never cut the hero run, the live app UIs, or the baseline recording.
 
-Today's build decisions are at the top of `TASKS.md`: mock job boards, hand-modeled drivers, no driver compiling, no agent-OAuth into the boards. Do not claim those as built.
+Today's build decisions are at the top of `TASKS.md`. Where they differ from `idea.md` (no login, no free-text box, mock apps, hand-modeled drivers), `TASKS.md` is correct for today's build. Do not claim driver compiling or agent OAuth as built.
