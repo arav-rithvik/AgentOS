@@ -17,7 +17,7 @@ const SITES: Record<Site, { title: string; host: string; path: string; short: st
   docs: { title: "Docs", host: "docs.agentos.dev", path: "/document/u/0/", short: "Docs" },
   calendar: { title: "Calendar - October 2026", host: "calendar.agentos.dev", path: "/r/week/2026/10/3", short: "Calendar" },
   cuts: { title: "Fade & Co. | Book Online", host: "fadeandco.com", path: "/book", short: "Fade & Co." },
-  jobs: { title: "Internships | Northwind Jobs", host: "northwindjobs.com", path: "/internships", short: "Northwind Jobs" },
+  jobs: { title: "Internships | Launchpad", host: "launchpad.jobs", path: "/internships", short: "Launchpad" },
 };
 const AGENTOS_TAB = { title: "AgentOS", host: "agentsos.vercel.app", path: "/", short: "AgentOS" };
 const meta = (t: Site | "agentos") => (t === "agentos" ? AGENTOS_TAB : SITES[t]);
@@ -438,7 +438,7 @@ export default function Mac({ objects, live, run, start }: { objects: Obj[]; liv
             {active === "docs" && <DocsSite objects={objects} hl={hl} hlT={live?.t} />}
             {active === "calendar" && <CalendarSite objects={objects} hl={hl} hlT={live?.t} />}
             {active === "cuts" && <CutsSite objects={objects} hl={hl} hlT={live?.t} />}
-            {active === "jobs" && <iframe src="/boards/a" title="Northwind Jobs" className="h-full w-full" style={{ border: 0 }} />}
+            {active === "jobs" && <iframe src="/boards/a" title="Launchpad" className="h-full w-full" style={{ border: 0 }} />}
             {real && (
               <iframe
                 key={real.id}

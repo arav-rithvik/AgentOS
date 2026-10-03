@@ -28,7 +28,7 @@ export function local(iso: string, addMin = 0) {
   return d.toLocaleString("sv-SE", { timeZone: "America/Los_Angeles" }).replace(" ", "T").slice(0, 16);
 }
 
-const BOARD: Record<string, string> = { a: "Northwind Jobs", b: "Lattice Careers", c: "Gradhire", d: "InternStack", e: "Sprout Board" };
+const BOARD: Record<string, string> = { a: "Launchpad", b: "InternLoop", c: "ResearchHire", d: "CampusGrid", e: "Stackwise Jobs" };
 const when = (iso: unknown) => {
   const d = new Date(String(iso));
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("en-US", { timeZone: "America/Los_Angeles", weekday: "short", hour: "numeric", minute: "2-digit" });
