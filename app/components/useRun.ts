@@ -8,7 +8,7 @@ import { browser, describe, LIVE, local, toPreset } from "./live";
 // action_log/runs/events/docs/bookings rows arrive over Realtime. Without it, a scripted
 // preview runs so the page still works offline.
 
-export type Line = { id: string; text: string; action?: Action; pending?: boolean; group?: string };
+export type Line = { id: string; text: string; action?: Action; pending?: boolean; group?: string; req?: { call: string; args: Record<string, unknown> } };
 export type Site = "jobs" | "docs" | "calendar" | "mail" | "cuts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -182,19 +182,80 @@ export function useRun() {
     await sleep(350);
     const p = prompt.toLowerCase();
 
-    if (/hair|cut|barber/.test(p)) {
-      await call("Checked Fade & Co. for openings tomorrow afternoon", "cuts.slots.list", { date: "2026-10-04", after: "12:00" }, { ok: true, count: 4 }, () => show("cuts"));
-      const booking: Obj = { app: "cuts", type: "booking", key: uid("bk"), data: { service: "Haircut", barber: "Marcus", start: "2026-10-04T14:00", price: 35 } };
-      await call("Booked a haircut with Marcus, Sun 2:00 PM", "cuts.bookings.create", { service: "Haircut", barber: "Marcus", start: "2026-10-04T14:00" }, { ok: true, id: booking.key, confirmation: "FC-4821" }, () => {
-        add(booking);
-        show("cuts", booking.key);
-      });
-      const ev: Obj = { app: "calendar", type: "event", key: uid("evt"), data: { title: "Haircut · Fade & Co.", start: "2026-10-04T14:00", end: "2026-10-04T14:30" } };
-      await call("Added it to your calendar", "calendar.events.create", { title: ev.data.title, start: ev.data.start, end: ev.data.end }, { ok: true, id: ev.key }, () => {
-        add(ev);
-        show("calendar", ev.key);
-      });
-      finish("Booked: haircut with Marcus at Fade & Co., tomorrow 2:00 PM ($35). It's on your calendar.", 1980, 260);
+    if (/hair|cut|barber|concert|flight|weekend/.test(p)) {
+      // Same wire format as the engine (lib/agent.ts + lib/drivers.ts): call {action, args} -> {receipt, data}.
+      type C = { text: string; action: string; args: Record<string, unknown>; result_id?: string; data: unknown; effect?: () => void };
+      let turnN = 0;
+      const turn = async (cs: C[], wait = 1100) => {
+        turnN += 1;
+        const g = cs.length > 1 ? `parallel:${turnN}` : `turn:${turnN}`;
+        const ids = cs.map((c) => {
+          const id = uid("l");
+          push({ id, text: c.text, pending: true, group: g, req: { call: c.action, args: c.args } });
+          return id;
+        });
+        const t = new Date();
+        await sleep(wait);
+        cs.forEach((c, i) => {
+          c.effect?.();
+          const ms = 30 + Math.round(Math.random() * 40);
+          const receipt = { action: c.action, args: c.args, result_id: c.result_id ?? null, count: Array.isArray(c.data) ? c.data.length : null, status: "ok", started_at: t.toISOString(), finished_at: new Date(t.getTime() + ms).toISOString() };
+          patch(ids[i], { pending: false, action: { id: uid("a"), run_id: runId, call: c.action, args: c.args, receipt, ms, data: c.data } });
+        });
+        steps += 1;
+        tick({ steps, ms: ms() });
+      };
+      const slots = [
+        { id: "slt_0912", salon: "Fade & Co.", stylist: "Dee", service: "Haircut", start: "2026-10-04T09:00:00-07:00", durationMin: 30, price: 35 },
+        { id: "slt_1004", salon: "Fade & Co.", stylist: "Marcus", service: "Haircut", start: "2026-10-04T10:00:00-07:00", durationMin: 30, price: 32 },
+        { id: "slt_1130", salon: "Mission Barbers", stylist: "Jo", service: "Haircut", start: "2026-10-04T11:30:00-07:00", durationMin: 30, price: 40 },
+      ];
+      const shows = [
+        { id: "cnc_221", artist: "Japanese Breakfast", genre: "indie", venue: "The Fillmore", city: "San Francisco", start: "2026-10-04T20:00:00-07:00", durationMin: 150, price: 54, ticketsLeft: 38 },
+        { id: "cnc_238", artist: "Khruangbin", genre: "psych", venue: "Bill Graham Civic", city: "San Francisco", start: "2026-10-04T21:00:00-07:00", durationMin: 120, price: 79, ticketsLeft: 120 },
+      ];
+      const flights = [
+        { id: "flt_ua1478", airline: "United", from: "SFO", to: "LAX", departs: "2026-10-05T18:10:00-07:00", arrives: "2026-10-05T19:40:00-07:00", price: 89, seatsLeft: 11 },
+        { id: "flt_as1921", airline: "Alaska", from: "SFO", to: "LAX", departs: "2026-10-05T19:25:00-07:00", arrives: "2026-10-05T20:55:00-07:00", price: 104, seatsLeft: 4 },
+      ];
+      const cal = [
+        { id: "evt_1", title: "Physics 2 study block", start: "2026-10-03T19:00:00-07:00", durationMin: 90, kind: "block" },
+        { id: "evt_2", title: "Team sync with Arav", start: "2026-10-04T10:00:00-07:00", durationMin: 60, kind: "event" },
+      ];
+      await turn([
+        { text: "Checked salon openings: 3 found", action: "salon.slots.list", args: { date: "2026-10-04", before: "12:00" }, data: slots, effect: () => show("cuts") },
+        { text: "Searched concerts: 2 found", action: "concerts.search", args: { city: "San Francisco", date: "2026-10-04", maxPrice: 60 }, data: shows },
+        { text: "Searched flights SFO→LAX: 2 found", action: "flights.search", args: { from: "SFO", to: "LAX", date: "2026-10-05", after: "17:00" }, data: flights },
+        { text: "Read your calendar: 2 items", action: "calendar.list", args: {}, data: cal },
+      ]);
+      tick({ input_tokens: 2980, output_tokens: 210 });
+      // Marcus at 10:00 clashes with the team sync, so the cheapest free slot is Dee at 9:00.
+      const booking: Obj = { app: "cuts", type: "booking", key: "bkg_7f3a", data: { service: "Haircut", barber: "Dee", start: "2026-10-04T09:00", price: 35 } };
+      await turn([
+        { text: "Booked the haircut", action: "salon.book", args: { slotId: "slt_0912" }, result_id: "bkg_7f3a", data: { id: "bkg_7f3a", confirmation: "FC-4821", price: 35 }, effect: () => { add(booking); show("cuts", booking.key); } },
+        { text: "Booked 2 concert tickets", action: "concerts.book", args: { concertId: "cnc_221", qty: 2 }, result_id: "bkg_7f3b", data: { id: "bkg_7f3b", confirmation: "FIL-20931", price: 108 } },
+        { text: "Booked the flight", action: "flights.book", args: { flightId: "flt_ua1478" }, result_id: "bkg_7f3c", data: { id: "bkg_7f3c", confirmation: "UA-K7Q2PD", price: 89 } },
+      ]);
+      tick({ input_tokens: 4410, output_tokens: 380 });
+      const evs: [string, string, string, string][] = [
+        ["evt_h1", "Haircut · Fade & Co.", "2026-10-04T09:00", "2026-10-04T09:30"],
+        ["evt_c1", "Japanese Breakfast · The Fillmore", "2026-10-04T20:00", "2026-10-04T22:30"],
+        ["evt_f1", "Flight UA 1478 SFO → LAX", "2026-10-05T18:10", "2026-10-05T19:40"],
+      ];
+      await turn(
+        evs.map(([key, title, start, end]) => ({
+          text: `Added “${title}”`,
+          action: "calendar.create",
+          args: { title, start: `${start}:00-07:00`, durationMin: (Date.parse(end) - Date.parse(start)) / 60000, kind: "event" },
+          result_id: key,
+          data: { id: key },
+          effect: () => {
+            add({ app: "calendar", type: "event", key, data: { title, start, end } });
+            show("calendar", key);
+          },
+        })),
+      );
+      finish("Haircut 9:00 AM with Dee ($35), 2 tickets to Japanese Breakfast at 8 PM ($108), flight UA 1478 Mon 6:10 PM ($89). All three are on your calendar, no overlaps.", 5890, 520);
     } else if (/maya|reply|email|mail/.test(p)) {
       await call("Found Maya's email: “Coffee next week?”", "mail.messages.list", { from: "Maya", unread: true }, { ok: true, count: 1 }, () => show("mail", "mail_1"));
       const sent: Obj = { app: "mail", type: "mail", key: uid("mail"), data: { folder: "sent", from: ME.name, email: ME.email, to: "maya.chen@gmail.com", subject: "Re: Coffee next week?", body: "Tuesday at 3 works. See you then!\n\nRithvik", at: "3:00 PM", unread: false } };

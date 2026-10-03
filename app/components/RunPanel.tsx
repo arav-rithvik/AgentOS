@@ -123,7 +123,7 @@ export default function RunPanel({ lines, run, reset, start }: { lines: Line[]; 
                     ) : (
                       <span style={{ color: l.pending ? DIM : "#e6e8ee" }}>{l.text}</span>
                     )}
-                    {l.group === "parallel" && <span style={{ color: FAINT }}> · parallel</span>}
+                    {l.group?.startsWith("parallel") && <span style={{ color: FAINT }}> · parallel</span>}
                   </span>
                 </button>
                 {l.action && (

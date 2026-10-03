@@ -13,7 +13,7 @@ export type Mail = { folder: "inbox" | "sent"; from: string; email: string; to: 
 export const ME = { name: "Rithvik", email: "rithvik@agentos.dev" };
 export const SHOP = { name: "Fade & Co.", host: "fadeandco.com", barbers: ["Marcus", "Dee", "Lena"], services: [{ name: "Haircut", price: 35, min: 30 }, { name: "Haircut + Beard", price: 50, min: 45 }, { name: "Lineup", price: 20, min: 15 }] };
 
-export type Action = { id: string; run_id: string; call: string; args: Record<string, unknown>; receipt: Record<string, unknown>; ms: number };
+export type Action = { id: string; run_id: string; call: string; args: Record<string, unknown>; receipt: Record<string, unknown>; ms: number; data?: unknown };
 export type Run = { id: string; prompt: string; status: "running" | "done" | "error"; result: string | null; steps: number; input_tokens: number; output_tokens: number; ms: number };
 
 export const BOARDS = [
