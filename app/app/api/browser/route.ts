@@ -6,7 +6,8 @@ export const maxDuration = 60;
 // POST → a fresh Steel cloud Chrome, already on /web/mail. Returns {id, viewerUrl}.
 export async function POST(req: Request) {
   const client = steel();
-  if (!client) return Response.json({ error: "no key" }, { status: 404 });
+  // No key: 200 + disabled (not 404 — Vercel served that as a 500). The Mac keeps the drawn Chrome.
+  if (!client) return Response.json({ disabled: true });
 
   let id: string | null = null;
   try {
