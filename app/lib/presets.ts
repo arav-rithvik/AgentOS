@@ -9,7 +9,12 @@ export const PRESETS = {
   study: {
     label: "Block study time for everything due this week.",
     prompt:
-      "Look at my calendar. For each deadline this week, add one 90-minute study block the evening before it (between 17:00 and 22:00 local time). A block must not overlap any other event or block. Title each block \"Study: <what is due>\".",
+      "Look at my calendar. For each deadline this week, add one 90-minute study block the evening before it (between 17:00 and 22:00 local time). A block must not overlap any other event or block. Use kind \"block\". Title each block \"Study: <what is due>\".",
+  },
+  weekend: {
+    label: "Tomorrow: book a haircut, 2 concert tickets and a flight home, all on my calendar.",
+    prompt:
+      "Plan tomorrow and the day after for me. (1) Book the cheapest haircut tomorrow morning, before 12:00. (2) Book 2 tickets to a concert in San Francisco tomorrow night, under $60 each. (3) Book the cheapest flight from SFO to LAX the day after tomorrow that departs after 17:00. Nothing may overlap anything already on my calendar or each other. Then put all three on my calendar with the correct start and length.",
   },
 } as const;
 

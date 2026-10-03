@@ -95,9 +95,40 @@ Two additions, and why:
 ```
 `result_id` is the new row's id for a create. `count` is the number of rows for a list. `status` is `ok` or `error`.
 
+
+### More apps (added 3:10 PM): flights, salon, concerts
+
+All fake, with seeded data. The browser reads these four, same as `jobs`:
+
+```
+flights(id, airline, origin, dest, departs_at, arrives_at, price, seats_left)        72 rows
+salon_slots(id, salon, stylist, service, starts_at, duration_min, price)             72 rows
+concerts(id, artist, genre, venue, city, starts_at, duration_min, price, tickets_left)  20 rows
+bookings(id, run_id, app, item_id, title, details, price, confirmation, created_at)  Realtime is on
+```
+
+`bookings` holds each thing the agent books. `app` is `flights`, `salon` or `concerts`. Filter by the current `run_id`.
+
+Drivers:
+
+```
+flights.search({ from, to, date, after, maxPrice })      -> [{ id, airline, from, to, departs, arrives, price, seatsLeft }]
+flights.book({ flightId })                               -> { id, confirmation, price }
+salon.slots.list({ date, salon, before, maxPrice })      -> [{ id, salon, stylist, service, start, durationMin, price }]
+salon.book({ slotId })                                   -> { id, confirmation, price }
+concerts.search({ query, city, date, maxPrice })         -> [{ id, artist, genre, venue, city, start, durationMin, price, ticketsLeft }]
+concerts.book({ concertId, qty })                        -> { id, confirmation, price }
+```
+
+Third preset, `weekend`: "Tomorrow: book a haircut, 2 concert tickets and a flight home, all on my calendar." It uses 4 apps in one task.
+
+Row types for all of these are in `app/lib/types.ts`. Preset labels are in `app/lib/presets.ts`.
+
+**Rithvik, new task R1.6 (only after R1 and R2 work):** add three small app UIs: Flights, Salon, Concerts. Each shows its list, and marks the item the agent booked (from `bookings`). If there is no time, show only a "Bookings" list with the confirmation codes.
+
 ### API (POST, JSON)
 
-- `/api/run` with `{ preset: "internships" | "study" }` returns `{ runId }` **at once**, then the run goes on in the background. The page follows it with Realtime on `runs` and `action_log` where `run_id` matches.
+- `/api/run` with `{ preset: "internships" | "study" | "weekend" }` returns `{ runId }` **at once**, then the run goes on in the background. The page follows it with Realtime on `runs` and `action_log` where `run_id` matches.
 
 ### Pages
 

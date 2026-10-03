@@ -38,7 +38,7 @@ export type ActionLog = {
   id: number;
   run_id: string;
   ts: string;
-  app: "jobboard" | "docs" | "calendar";
+  app: "jobboard" | "docs" | "calendar" | "flights" | "salon" | "concerts";
   action: string;
   args: Record<string, unknown>;
   receipt: Receipt;
@@ -56,5 +56,32 @@ export type Run = {
   input_tokens: number;
   output_tokens: number;
   ms: number;
+  created_at: string;
+};
+
+export type Flight = {
+  id: string; airline: string; origin: string; dest: string;
+  departs_at: string; arrives_at: string; price: number; seats_left: number;
+};
+
+export type SalonSlot = {
+  id: string; salon: string; stylist: string; service: string;
+  starts_at: string; duration_min: number; price: number;
+};
+
+export type Concert = {
+  id: string; artist: string; genre: string; venue: string; city: string;
+  starts_at: string; duration_min: number; price: number; tickets_left: number;
+};
+
+export type Booking = {
+  id: string;
+  run_id: string | null;
+  app: "flights" | "salon" | "concerts";
+  item_id: string;
+  title: string;
+  details: Record<string, unknown>;
+  price: number;
+  confirmation: string;
   created_at: string;
 };
