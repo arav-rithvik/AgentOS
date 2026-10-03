@@ -1,6 +1,6 @@
 # AgentOS: where we are, and what's next (Sat Oct 3, ~4:45 PM)
 
-**One line:** AgentOS is the computer for agents. It is an operating system, not an agent. The agent's tool calls are its system calls, and the agent never looks at a screen.
+**One line:** AgentOS is the operating system for agents, not an agent. The agent's tool calls are its system calls, and the agent never looks at a screen.
 
 **Live:** https://agentsos.vercel.app (keep this URL)
 **Branch:** `rithvik/ui`. Everything from the judge site is here, on top of Arav's engine from `main`.

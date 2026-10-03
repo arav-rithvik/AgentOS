@@ -15,7 +15,7 @@ export default function Playground() {
         <Mac objects={r.objects} live={r.live} run={r.run} start={r.start} />
       </div>
       <div>
-        <Label title="Your agent’s computer" sub="AgentOS: the operating system your agent runs on. No screen, just system calls." green />
+        <Label title="Your agent’s operating system" sub="AgentOS: the operating system your agent runs on. No screen, just system calls." green />
         <AgentView lines={r.lines} run={r.run} />
       </div>
     </div>

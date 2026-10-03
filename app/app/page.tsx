@@ -61,9 +61,9 @@ export default function Home() {
           <SupabaseLogo size={15} />
           <span style={{ color: "var(--fg)" }}>Supabase Select 2026</span>
         </div>
-        <h1 className="mono mt-5 text-[40px] leading-tight tracking-tight sm:text-[64px]">The computer for agents.</h1>
+        <h1 className="mono mt-5 text-[40px] leading-tight tracking-tight sm:text-[52px]">The operating system for agents.</h1>
         <p className="mx-auto mt-6 max-w-[640px] text-[18px] leading-relaxed sm:text-[21px]" style={{ color: "#cfcfcf" }}>
-          AgentOS is a computer that lets AI agents use your apps as data instead of screenshots, so they finish real tasks in seconds, not minutes, and show you every step.
+          AgentOS is an operating system that lets AI agents use your apps as data instead of screenshots, so they finish real tasks in seconds, not minutes, and show you every step.
         </p>
         <div className="mt-10 flex items-center justify-center">
           <a href="#try" className="btn !border-white !bg-white !text-black">
@@ -103,6 +103,27 @@ export default function Home() {
         </div>
       </section>
 
+      <footer className="mt-28 border-t px-4 py-10 sm:px-14" style={{ borderColor: "var(--line)" }}>
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <Globe cols={14} rows={8} speed={3} className="text-[4px]" />
+            <div>
+              <div className="mono text-[12px] tracking-[0.14em]">AGENTOS</div>
+              <div className="mt-1 text-[14px]" style={{ color: "var(--dim)" }}>
+                The operating system for agents.
+              </div>
+            </div>
+          </div>
+          <div className="text-[13px] sm:text-right" style={{ color: "var(--faint)" }}>
+            <div className="mono inline-flex items-center gap-2 uppercase tracking-[0.12em]">
+              <span>Built at</span>
+              <SupabaseLogo size={12} />
+              <span style={{ color: "var(--dim)" }}>Supabase Select 2026</span>
+            </div>
+            <div className="mt-1.5">By Rithvik and Arav · Demo environment: tasks run on pre-connected demo apps.</div>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

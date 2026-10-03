@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AgentOS",
-  description: "The computer for agents. The world as data, a record of every action, and an undo button. Built on Supabase.",
+  description: "The operating system for agents. The world as data, a record of every action, and an undo button. Built on Supabase.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
