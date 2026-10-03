@@ -635,6 +635,10 @@ export function CutsSite({ objects, hl, hlT }: P_) {
   const [day, setDay] = useState(1);
   const dates = Array.from({ length: 7 }, (_, i) => addDays(TODAY, i));
   const gold = "#c9a45c";
+  // You're signed in on this computer already; one click to sign in, then Appointments shows what was booked.
+  const [view, setView] = useState<"book" | "signin" | "appts">("book");
+  const [me, setMe] = useState(false);
+  const toAppts = () => setView(me ? "appts" : "signin");
   return (
     <div className="h-full overflow-auto" style={{ fontFamily: '"Inter", -apple-system, "Helvetica Neue", sans-serif', background: "#f5f3ef", color: "#161616" }}>
       <div className="flex h-[56px] items-center justify-between px-8" style={{ background: "#111", color: "#f5f3ef" }}>
@@ -647,10 +651,23 @@ export function CutsSite({ objects, hl, hlT }: P_) {
           </span>
         </span>
         <div className="flex items-center gap-7 text-[12px] uppercase tracking-[0.14em]" style={{ color: "#cfcac1" }}>
-          <span>Services</span>
-          <span>Barbers</span>
-          <span>Gift cards</span>
-          <span role="button" className="cursor-pointer rounded-full px-4 py-[7px] font-semibold hover:brightness-110" style={{ background: gold, color: "#111" }}>
+          <span role="button" onClick={() => setView("book")} className="hover:text-white">Services</span>
+          <span role="button" onClick={toAppts} className="hover:text-white" style={{ color: view === "appts" ? "#fff" : undefined }}>
+            Appointments
+          </span>
+          {me ? (
+            <span className="flex items-center gap-2 normal-case tracking-normal text-[13px] text-white">
+              <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[12px] font-semibold" style={{ background: gold, color: "#111" }}>
+                R
+              </span>
+              {ME.name}
+            </span>
+          ) : (
+            <span role="button" onClick={() => setView("signin")} className="hover:text-white">
+              Sign in
+            </span>
+          )}
+          <span role="button" onClick={() => setView("book")} className="cursor-pointer rounded-full px-4 py-[7px] font-semibold hover:brightness-110" style={{ background: gold, color: "#111" }}>
             Book now
           </span>
         </div>
@@ -674,7 +691,52 @@ export function CutsSite({ objects, hl, hlT }: P_) {
         </div>
       </div>
 
-      {last ? (
+      {view === "signin" ? (
+        <div className="mx-auto my-10 max-w-[380px] rounded-2xl bg-white p-7" style={{ boxShadow: "0 10px 30px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04)" }}>
+          <div className="text-[22px]" style={{ fontFamily: "Georgia, serif" }}>
+            Sign in to Fade &amp; Co.
+          </div>
+          <div className="mt-1 text-[13px]" style={{ color: "#7a746b" }}>
+            See and manage your appointments.
+          </div>
+          <form
+            className="mt-5 space-y-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setMe(true);
+              setView("appts");
+            }}
+          >
+            <label className="block text-[12px] font-medium" style={{ color: "#5c564d" }}>
+              Email
+              <input readOnly value={ME.email} className="mt-1 block w-full rounded-lg border px-3 py-2.5 text-[14px] outline-none" style={{ borderColor: "#d6d3d1", color: "#161616" }} />
+            </label>
+            <label className="block text-[12px] font-medium" style={{ color: "#5c564d" }}>
+              Password
+              <input readOnly type="password" value="saved-on-this-mac" className="mt-1 block w-full rounded-lg border px-3 py-2.5 text-[14px] outline-none" style={{ borderColor: "#d6d3d1" }} />
+            </label>
+            <button className="w-full rounded-lg py-2.5 text-[14px] font-semibold text-white hover:opacity-90" style={{ background: "#111" }}>
+              Sign in
+            </button>
+          </form>
+        </div>
+      ) : view === "appts" && !last ? (
+        <div className="mx-auto my-12 max-w-[420px] text-center">
+          <div className="text-[22px]" style={{ fontFamily: "Georgia, serif" }}>
+            No upcoming appointments
+          </div>
+          <div className="mt-2 text-[14px]" style={{ color: "#7a746b" }}>
+            When you book, it shows up here.
+          </div>
+          <button onClick={() => setView("book")} className="mt-5 rounded-full px-5 py-2 text-[13px] font-semibold hover:brightness-110" style={{ background: gold, color: "#111" }}>
+            Book now
+          </button>
+        </div>
+      ) : view === "appts" && last ? (
+        <div>
+        <div className="mx-auto mt-7 max-w-[460px] text-[20px]" style={{ fontFamily: "Georgia, serif" }}>
+          Your appointments
+        </div>
         <div key={`${last.key}-${hlT}`} className={`mx-auto my-7 max-w-[460px] overflow-hidden rounded-2xl bg-white ${fl(hl, last.key)}`} style={{ boxShadow: "0 10px 30px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04)" }}>
           <div className="flex items-center gap-3 px-6 py-5" style={{ background: "#111", color: "#fff" }}>
             <span className="flex h-[36px] w-[36px] items-center justify-center rounded-full" style={{ background: "#16a34a" }}>
@@ -711,6 +773,7 @@ export function CutsSite({ objects, hl, hlT }: P_) {
               Add to calendar
             </span>
           </div>
+        </div>
         </div>
       ) : (
         <div className="grid gap-6 px-8 py-6 md:grid-cols-[minmax(0,1fr)_340px]">

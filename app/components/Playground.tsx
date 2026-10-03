@@ -1,40 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import AgentView from "./AgentView";
 import Mac from "./mac/Mac";
-import RunPanel from "./RunPanel";
 import { useRun } from "./useRun";
 
+// Left: your computer. You give the task in the AgentOS tab, then check your own apps.
+// Right: the agent's computer on AgentOS. No screen, just the system calls, then "done".
 export default function Playground() {
   const r = useRun();
-  const running = r.run?.status === "running";
-  // off -> in (glitch) -> on (agent's computer) -> out (glitch back) -> off (your Mac, with the changes)
-  const [phase, setPhase] = useState<"off" | "in" | "on" | "out">("off");
-  useEffect(() => {
-    if (running) {
-      setPhase("in");
-      const t = setTimeout(() => setPhase("on"), 450);
-      return () => clearTimeout(t);
-    }
-    setPhase((p) => (p === "off" ? p : "out"));
-    const t = setTimeout(() => setPhase("off"), 1300);
-    return () => clearTimeout(t);
-  }, [running]);
-  const agent = phase !== "off";
-
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_430px]">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_440px]">
       <div>
-        <Label title={agent ? "Your agent’s computer" : "Your computer"} sub={agent ? "What your agent sees: data, not pixels" : "What you see"} green={agent} />
-        <div className={`relative ${phase === "in" ? "glitch-shake" : phase === "out" ? "glitch-shake late" : ""}`}>
-          <Mac objects={r.objects} live={r.live} />
-          {agent && <AgentView lines={r.lines} prompt={r.run?.prompt} phase={phase === "out" ? "out" : phase === "in" ? "in" : "on"} />}
-        </div>
+        <Label title="Your computer" sub="What you see. Give the task in the AgentOS tab, then check your apps." />
+        <Mac objects={r.objects} live={r.live} run={r.run} start={r.start} />
       </div>
       <div>
-        <Label title="AgentOS" sub="The operating system your agent runs on" green />
-        <RunPanel lines={r.lines} run={r.run} reset={r.reset} start={r.start} />
+        <Label title="Your agent’s computer" sub="AgentOS: the operating system your agent runs on. No screen, just system calls." green />
+        <AgentView lines={r.lines} run={r.run} />
       </div>
     </div>
   );
@@ -42,7 +24,7 @@ export default function Playground() {
 
 function Label({ title, sub, green }: { title: string; sub: string; green?: boolean }) {
   return (
-    <div className="mb-4">
+    <div className="mb-4 min-h-[64px]">
       <div className="mono text-[22px] leading-tight tracking-tight sm:text-[26px]" style={{ color: green ? "var(--green)" : "var(--fg)" }}>
         {title}
       </div>

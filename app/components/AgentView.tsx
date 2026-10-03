@@ -2,62 +2,66 @@
 
 import { useEffect, useRef } from "react";
 import { manifest } from "@/lib/manifest";
+import type { Run } from "./data";
 import type { Line } from "./useRun";
 
-// The agent's computer: no UI. Exactly what the engine (lib/agent.ts) sends and gets back:
-// the manifest in the system prompt, the user's task, then each turn's `call` tool_use
-// blocks ({ action, args }) and their tool_result ({ receipt, data }).
+// The agent's computer, as AgentOS sees it: no screen. Only the system calls the agent makes
+// (lib/agent.ts: call { action, args } -> { receipt, data }), streaming in, then "done".
 
-const MANIFEST = Object.entries(manifest.apps)
-  .map(([name, app]) => `    "${name}": ${JSON.stringify((app as { actions: unknown }).actions)}`)
-  .join(",\n");
+const APPS = Object.keys(manifest.apps).length;
+const CALLS = Object.values(manifest.apps).reduce((n, a) => n + Object.keys((a as { actions: object }).actions).length, 0);
 
-export default function AgentView({ lines, phase, prompt }: { lines: Line[]; phase: "in" | "on" | "out"; prompt?: string }) {
+function clip(s: string, n = 260) {
+  return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
+
+export default function AgentView({ lines, run }: { lines: Line[]; run: Run | null }) {
   const ref = useRef<HTMLPreElement>(null);
-  const calls = lines.filter((l) => l.action || l.pending);
-  const pending = lines.some((l) => l.pending);
+  const calls = lines.filter((l) => l.action || l.req);
+  const running = run?.status === "running";
 
   useEffect(() => {
     ref.current?.scrollTo({ top: ref.current.scrollHeight, behavior: "smooth" });
-  }, [lines]);
+  }, [lines, run?.status]);
 
-  // Group calls into model turns: calls from one turn share a group.
-  const turns: Line[][] = [];
-  calls.forEach((l, i) => {
-    const prev = calls[i - 1];
-    if (prev && l.group && prev.group === l.group) turns[turns.length - 1].push(l);
-    else turns.push([l]);
-  });
-
-  const out: string[] = [
-    "POST /v1/messages",
-    `{ "model": "claude-sonnet-5-5", "tools": [{ "name": "call", "input_schema": { "action": "enum", "args": "object" } }] }`,
-    "",
-    "── system",
-    "You are an agent running on AgentOS, a computer made for agents. There is no screen.",
-    "Each app is typed data and typed calls.",
-    `{ "apps": {\n${MANIFEST}\n} }`,
-    "",
-    "── user",
-    JSON.stringify(prompt ?? ""),
-  ];
-  turns.forEach((t) => {
-    out.push("", `── assistant · tool_use × ${t.length}${t.length > 1 ? " (one turn, run in parallel)" : ""}`);
-    const calls = t.filter((l) => l.action || l.req);
-    calls.forEach((l) => out.push(`call ${JSON.stringify({ action: l.action?.call ?? l.req!.call, args: l.action?.args ?? l.req!.args })}`));
-    const done = t.filter((l) => l.action && !l.pending);
-    if (done.length) {
-      out.push("", `── user · tool_result × ${done.length}`);
-      done.forEach((l) => out.push(JSON.stringify({ receipt: l.action!.receipt, data: l.action!.data ?? (l.action!.receipt as { count?: number }).count ?? null })));
+  const out: string[] = [`agentos ▸ ${APPS} apps mounted · ${CALLS} system calls · no screen`, ""];
+  if (!run) out.push("waiting for a task…");
+  else {
+    out.push(`task ${JSON.stringify(run.prompt)}`, "");
+    let group: string | undefined;
+    calls.forEach((l) => {
+      if (l.group !== group) {
+        if (group !== undefined) out.push("");
+        group = l.group;
+      }
+      const action = l.action?.call ?? l.req!.call;
+      const args = l.action?.args ?? l.req!.args;
+      out.push(`call ${JSON.stringify({ action, args })}`);
+      if (l.action) {
+        const r = l.action.receipt as { status?: string; count?: number | null; result_id?: string | null };
+        const data = l.action.data;
+        const result = { status: r.status ?? "ok", count: r.count ?? null, result_id: r.result_id ?? null, data };
+        out.push(clip(` → ${JSON.stringify(result)}`) + `  ${l.action.ms}ms`);
+      } else out.push(" → …");
+    });
+    if (run.status !== "running") {
+      const n = calls.filter((l) => l.action).length;
+      out.push(
+        "",
+        run.status === "done" ? `✓ done · ${n} calls · ${(run.ms / 1000).toFixed(1)}s · ${(run.input_tokens + run.output_tokens).toLocaleString()} tokens · 0 screenshots` : `✗ ${run.result ?? "failed"}`,
+      );
     }
-  });
+  }
 
   return (
-    <div className={`agent-view absolute inset-0 z-[200] overflow-hidden rounded-[12px] ${phase === "in" ? "glitch-in" : phase === "out" ? "glitch-out" : ""}`}>
-      <pre ref={ref} className="scroll-thin h-full overflow-auto whitespace-pre-wrap break-all p-5 font-mono text-[11px] leading-[1.55]" style={{ color: "#d6e4dc" }}>
-        {out.join("\n")}
-        {"\n"}
-        {(pending || turns.length === 0) && <span className="blink">█</span>}
+    <div className="flex h-[680px] flex-col overflow-hidden rounded-[14px] border" style={{ background: "#050505", borderColor: "var(--line-2)" }}>
+      <pre ref={ref} className="scroll-thin h-full overflow-auto whitespace-pre-wrap break-all p-5 font-mono text-[11.5px] leading-[1.6]" style={{ color: "#d6e4dc" }}>
+        {out.map((t, i) => (
+          <div key={i} style={{ color: t.startsWith("✓") ? "var(--green)" : t.startsWith(" →") ? "#7d8a83" : t.startsWith("agentos") ? "var(--green)" : undefined }}>
+            {t || " "}
+          </div>
+        ))}
+        {(running || !run) && <span className="blink">█</span>}
       </pre>
     </div>
   );

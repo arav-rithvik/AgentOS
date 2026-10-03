@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { Obj } from "../data";
+import type { Obj, Run } from "../data";
 import type { Site } from "../useRun";
 import Dock from "./Dock";
 import { CalendarSite, CutsSite, DocsSite, MailSite } from "../web/Sites";
+import { AgentOSSite } from "../web/AgentOSSite";
 import { MS, P } from "../web/icons";
 import { realPath, useRealChrome } from "./RealChrome";
 
-type Tab = Site | "newtab";
+type Tab = Site | "newtab" | "agentos";
 
 const WALLPAPER = "/mac/wallpaper-gg.jpg";
 const SITES: Record<Site, { title: string; host: string; path: string; short: string }> = {
@@ -18,12 +19,22 @@ const SITES: Record<Site, { title: string; host: string; path: string; short: st
   cuts: { title: "Fade & Co. | Book Online", host: "fadeandco.com", path: "/book", short: "Fade & Co." },
   jobs: { title: "Internships | Northwind Jobs", host: "northwindjobs.com", path: "/internships", short: "Northwind Jobs" },
 };
+const AGENTOS_TAB = { title: "AgentOS", host: "agentsos.vercel.app", path: "/", short: "AgentOS" };
+const meta = (t: Site | "agentos") => (t === "agentos" ? AGENTOS_TAB : SITES[t]);
 const ORDER: Site[] = ["mail", "docs", "calendar", "cuts", "jobs"];
 const SANS = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif';
 
 const APPLE = "M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701";
 
 export function Favicon({ site, s = 16 }: { site: Tab; s?: number }) {
+  if (site === "agentos")
+    return (
+      <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
+        <rect width="16" height="16" rx="4" fill="#111" />
+        <circle cx="8" cy="8" r="4.2" fill="none" stroke="#3ecf8e" strokeWidth="1.4" />
+        <path d="M3.8 8h8.4M8 3.8c1.6 1.4 1.6 7 0 8.4M8 3.8c-1.6 1.4-1.6 7 0 8.4" stroke="#3ecf8e" strokeWidth="0.9" fill="none" />
+      </svg>
+    );
   if (site === "mail")
     return (
       <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
@@ -94,12 +105,12 @@ function clockText() {
   return `${wd} ${mo} ${d.getDate()} ${h % 12 || 12}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ${h >= 12 ? "PM" : "AM"}`;
 }
 
-export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Site; key?: string; t: number } | null }) {
+export default function Mac({ objects, live, run, start }: { objects: Obj[]; live: { app: Site; key?: string; t: number } | null; run: Run | null; start: (p: string) => void }) {
   const [open, setOpen] = useState(true);
   const [max, setMax] = useState(true);
   const [pos, setPos] = useState({ x: 70, y: 52 });
-  const [tabs, setTabs] = useState<Tab[]>(["mail", "calendar", "docs"]);
-  const [active, setActive] = useState<Tab>("mail");
+  const [tabs, setTabs] = useState<Tab[]>(["agentos", "mail", "calendar", "cuts"]);
+  const [active, setActive] = useState<Tab>("agentos");
   const [clock, setClock] = useState("Sat Oct 3 3:38:02 PM");
   const win = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLDivElement>(null);
@@ -145,13 +156,11 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
     openWin();
   };
 
-  // The agent works in data on the AgentOS side; this computer just shows each change land.
+  // The agent works on AgentOS, not on this screen. The computer doesn't jump around:
+  // you open your apps yourself to check the result.
   useEffect(() => {
-    if (live) {
-      boot();
-      go(live.app);
-    }
-  }, [live]);
+    if (live) boot();
+  }, [live, boot]);
 
   // Real Chrome: keep the cloud browser on the same page as the active drawn tab.
   const latest = useRef(objects);
@@ -159,7 +168,7 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
     latest.current = objects;
   }, [objects]);
   useEffect(() => {
-    if (!real || active === "newtab") return;
+    if (!real || active === "newtab" || active === "agentos") return;
     showReal(realPath(active, latest.current, live && live.app === active ? live.key : undefined));
   }, [real, active, live, showReal]);
 
@@ -191,10 +200,10 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
   };
 
   const hl = live && live.app === active ? live.key : undefined;
-  const drawn = active === "newtab" ? null : SITES[active];
+  const drawn = active === "newtab" ? null : meta(active);
   const realHost = real ? new URL(real.origin).host : null;
-  const site = drawn && realHost ? { ...drawn, host: realHost, path: active === "jobs" ? "/boards/a" : `/web/${active}` } : drawn;
-  const streaming = !!real && realReady && active !== "newtab";
+  const site = drawn && realHost && active !== "agentos" ? { ...drawn, host: realHost, path: active === "jobs" ? "/boards/a" : `/web/${active}` } : drawn;
+  const streaming = !!real && realReady && active !== "newtab" && active !== "agentos";
   const ai = tabs.indexOf(active);
   const frame = "#dfe3e7";
   const geo = max ? { left: 8, top: 31, right: 8, bottom: 78 } : { left: pos.x, top: pos.y, width: "78%", height: 470 };
@@ -271,7 +280,7 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
               {tabs.map((t, i) => {
                 const on = t === active;
                 const sep = i > 0 && !on && i - 1 !== ai;
-                const title = t === "newtab" ? "New Tab" : SITES[t].title;
+                const title = t === "newtab" ? "New Tab" : meta(t).title;
                 return (
                   <div key={t} className="group relative flex h-[34px] min-w-0 items-center" style={{ flex: "0 1 240px", zIndex: on ? 2 : 1 }}>
                     {sep && <span className="absolute left-0 top-[9px] h-[16px] w-px" style={{ background: "#a9acb0" }} />}
@@ -424,6 +433,7 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
                 </div>
               </div>
             )}
+            {active === "agentos" && <AgentOSSite run={run} start={start} onOpen={(x) => go(x)} />}
             {active === "mail" && <MailSite objects={objects} hl={hl} hlT={live?.t} />}
             {active === "docs" && <DocsSite objects={objects} hl={hl} hlT={live?.t} />}
             {active === "calendar" && <CalendarSite objects={objects} hl={hl} hlT={live?.t} />}
