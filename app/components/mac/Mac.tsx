@@ -9,7 +9,7 @@ import { MS, P } from "../web/icons";
 
 type Tab = Site | "newtab";
 
-const WALLPAPER = "/mac/wallpaper-day.jpg";
+const WALLPAPER = "/mac/wallpaper-gg.jpg";
 const SITES: Record<Site, { title: string; host: string; path: string; short: string }> = {
   mail: { title: "Inbox (2) - rithvik@agentos.dev - Mail", host: "mail.agentos.dev", path: "/mail/u/0/#inbox", short: "Mail" },
   docs: { title: "Docs", host: "docs.agentos.dev", path: "/document/u/0/", short: "Docs" },
@@ -89,7 +89,8 @@ function clockText() {
   const wd = d.toLocaleDateString("en-US", { weekday: "short" });
   const mo = d.toLocaleDateString("en-US", { month: "short" });
   const h = d.getHours();
-  return `${wd} ${mo} ${d.getDate()} ${h % 12 || 12}:${String(d.getMinutes()).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+  const p2 = (n: number) => String(n).padStart(2, "0");
+  return `${wd} ${mo} ${d.getDate()} ${h % 12 || 12}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ${h >= 12 ? "PM" : "AM"}`;
 }
 
 export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Site; key?: string; t: number } | null }) {
@@ -98,14 +99,14 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
   const [pos, setPos] = useState({ x: 70, y: 52 });
   const [tabs, setTabs] = useState<Tab[]>(["mail", "calendar", "docs"]);
   const [active, setActive] = useState<Tab>("mail");
-  const [clock, setClock] = useState("Sat Oct 3 3:27 PM");
+  const [clock, setClock] = useState("Sat Oct 3 3:38:02 PM");
   const win = useRef<HTMLDivElement>(null);
   const popNext = useRef(false);
 
   useEffect(() => {
     const f = () => setClock(clockText());
     f();
-    const i = setInterval(f, 10000);
+    const i = setInterval(f, 1000);
     return () => clearInterval(i);
   }, []);
 
@@ -186,7 +187,7 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
           <svg width="14" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden className="mr-[13px] mt-[3px] shrink-0">
             <path d={APPLE} />
           </svg>
-          <span className="h-[24px] shrink-0 px-[9px] font-bold leading-[24px]">{open ? "Google Chrome" : "Finder"}</span>
+          <span className="h-[24px] shrink-0 px-[9px] font-semibold leading-[24px]">{open ? "Chrome" : "Finder"}</span>
           {(open ? ["File", "Edit", "View", "History", "Bookmarks", "Profiles", "Tab", "Window", "Help"] : ["File", "Edit", "View", "Go", "Window", "Help"]).map((m) => (
             <span key={m} className="hidden h-[24px] shrink-0 px-[9px] leading-[24px] sm:inline">
               {m}
@@ -194,17 +195,17 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
           ))}
         </div>
         <div className="flex shrink-0 items-center gap-[14px] whitespace-nowrap pl-3">
-          {/* battery */}
-          <svg width="26" height="13" viewBox="0 0 26 13" fill="none" aria-hidden>
-            <rect x=".75" y=".75" width="21.5" height="11.5" rx="3.4" stroke="currentColor" strokeOpacity=".45" strokeWidth="1.2" />
-            <rect x="2.4" y="2.4" width="15.5" height="8.2" rx="1.9" fill="currentColor" />
-            <path d="M24 4.6v3.8" stroke="currentColor" strokeOpacity=".45" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
           {/* wifi */}
           <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor" aria-hidden>
             <path d="M8 2.1c2.3 0 4.4.9 6 2.4l1-1A9.6 9.6 0 0 0 8 .7 9.6 9.6 0 0 0 1 3.5l1 1a8.3 8.3 0 0 1 6-2.4Z" />
             <path d="M8 5.2c1.4 0 2.6.5 3.6 1.3l1-1A6.8 6.8 0 0 0 8 3.8c-1.8 0-3.4.7-4.6 1.7l1 1c1-.8 2.2-1.3 3.6-1.3Z" />
             <path d="M8 8.2c.6 0 1.1.2 1.5.5L8 10.9 6.5 8.7c.4-.3.9-.5 1.5-.5Z" />
+          </svg>
+          {/* battery */}
+          <svg width="26" height="13" viewBox="0 0 26 13" fill="none" aria-hidden>
+            <rect x=".75" y=".75" width="21.5" height="11.5" rx="3.4" stroke="currentColor" strokeOpacity=".45" strokeWidth="1.2" />
+            <rect x="2.4" y="2.4" width="15.5" height="8.2" rx="1.9" fill="currentColor" />
+            <path d="M24 4.6v3.8" stroke="currentColor" strokeOpacity=".45" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           {/* spotlight */}
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden>
@@ -228,7 +229,7 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
         <div ref={win} className="absolute z-20 flex flex-col overflow-hidden" style={{ ...geo, borderRadius: 11, background: "#fff", color: "#1f1f1f", boxShadow: "0 0 0 0.5px rgba(0,0,0,.55), inset 0 0 0 0.5px rgba(255,255,255,.35), 0 24px 64px rgba(0,0,0,.42), 0 6px 18px rgba(0,0,0,.22)", fontFamily: SANS }}>
           {/* tab strip */}
           <div onMouseDown={drag} onDoubleClick={() => setMax((m) => !m)} className="flex h-[42px] shrink-0 items-end pr-[6px]" style={{ background: frame }}>
-            <div className="group/tl flex h-full shrink-0 items-center gap-[8px] pl-[13px] pr-[18px]" onMouseDown={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
+            <div className="group/tl flex h-full shrink-0 items-center gap-[8px] pl-[13px] pr-[12px]" onMouseDown={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>
               {(
                 [
                   ["#ff5f57", "#e0443e", "Close", () => { setOpen(false); setTabs(["newtab"]); setActive("newtab"); }, "M3.5 3.5l5 5M8.5 3.5l-5 5"],
@@ -243,6 +244,9 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
                 </button>
               ))}
             </div>
+            <button onMouseDown={(e) => e.stopPropagation()} className="mb-[4px] mr-[6px] flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-[8px] hover:bg-[rgba(31,31,31,.08)]" style={{ color: "#474747" }} aria-label="Search tabs">
+              <MS d={P.down} s={20} />
+            </button>
             <div className="flex h-[34px] min-w-0 flex-1 items-end">
               {tabs.map((t, i) => {
                 const on = t === active;
@@ -291,9 +295,6 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
                 <MS d={P.add} s={20} />
               </button>
             </div>
-            <button onMouseDown={(e) => e.stopPropagation()} className="mb-[4px] flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full hover:bg-[rgba(31,31,31,.08)]" style={{ color: "#474747" }} aria-label="Search tabs">
-              <MS d={P.down} s={20} />
-            </button>
           </div>
 
           {/* toolbar */}
@@ -301,6 +302,12 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
             <Btn d={P.back} label="Back" />
             <Btn d={P.fwd} label="Forward" dim />
             <Btn d={P.reload} label="Reload" />
+            <button aria-label="Split view" className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full hover:bg-[rgba(31,31,31,.08)]" style={{ color: "#474747" }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden>
+                <rect x="2.5" y="4" width="15" height="12" rx="2.2" />
+                <path d="M10 4v12" />
+              </svg>
+            </button>
             <div className="mx-[6px] flex h-[34px] min-w-0 flex-1 items-center rounded-full pl-[5px] pr-[4px] hover:bg-[#e1e6ee]" style={{ background: "#e9eef6" }}>
               <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full hover:bg-[rgba(31,31,31,.08)]" style={{ color: "#474747" }}>
                 <MS d={site ? P.tune : P.search} s={site ? 18 : 18} />
@@ -312,7 +319,7 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
                     <span style={{ color: "#5e5e5e" }}>{site.path}</span>
                   </>
                 ) : (
-                  <span style={{ color: "#5e5e5e" }}>Search Google or type a URL</span>
+                  <span style={{ color: "#5e5e5e" }}>Ask Google or type a URL</span>
                 )}
               </span>
               {site && (
@@ -349,18 +356,47 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
           {/* page */}
           <div className="@container relative min-h-0 flex-1 overflow-hidden" style={{ background: "#fff" }}>
             {active === "newtab" && (
-              <div className="flex h-full flex-col items-center overflow-auto pt-[16%]" style={{ background: "#fff" }}>
-                <div className="flex h-[46px] w-[560px] max-w-[85%] items-center gap-3 rounded-full px-5 text-[15px]" style={{ background: "#e9eef6", color: "#5e5e5e" }}>
-                  <MS d={P.search} s={20} />
-                  Search Google or type a URL
+              <div className="relative flex h-full flex-col items-center overflow-auto" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,.12), rgba(0,0,0,.18)), url(${WALLPAPER})`, backgroundSize: "cover", backgroundPosition: "center" }}>
+                <div className="absolute right-[16px] top-[10px] flex items-center gap-[14px] text-[13px] text-white" style={{ textShadow: "0 1px 3px rgba(0,0,0,.4)", fontFamily: 'Arial, sans-serif' }}>
+                  <button onClick={() => go("mail")} className="hover:underline">Gmail</button>
+                  <span role="button" className="hover:underline">Images</span>
+                  <span role="button" className="flex h-[36px] w-[36px] items-center justify-center rounded-full hover:bg-[rgba(255,255,255,.18)]">
+                    <MS d={P.apps} s={22} c="#fff" />
+                  </span>
+                  <span className="flex h-[32px] w-[32px] items-center justify-center rounded-full text-[14px] font-medium" style={{ background: "linear-gradient(135deg,#0f9d8a,#0b6e63)", boxShadow: "0 0 0 2px rgba(255,255,255,.8)" }}>
+                    R
+                  </span>
                 </div>
-                <div className="mt-8 flex flex-wrap justify-center gap-x-2 gap-y-2">
+                <div className="mt-[11%] select-none text-[84px] font-medium leading-none text-white" style={{ fontFamily: '"Product Sans", "Google Sans", Arial, sans-serif', letterSpacing: "-3px", textShadow: "0 2px 12px rgba(0,0,0,.25)" }}>
+                  Google
+                </div>
+                <div className="mt-[26px] flex h-[52px] w-[584px] max-w-[86%] items-center gap-[10px] rounded-full bg-white pl-[14px] pr-[10px] text-[16px]" style={{ boxShadow: "0 2px 8px rgba(0,0,0,.18)", color: "#5e5e5e", fontFamily: 'Arial, sans-serif' }}>
+                  <MS d={P.add} s={22} c="#474747" />
+                  <span className="flex-1">Ask Google</span>
+                  <svg width="22" height="22" viewBox="0 -960 960 960" aria-hidden>
+                    <path fill="#4285f4" d="M480-400q-50 0-85-35t-35-85v-240q0-50 35-85t85-35q50 0 85 35t35 85v240q0 50-35 85t-85 35Z" />
+                    <path fill="#34a853" d="M440-120v-123q-104-14-172-93t-68-184h80q0 83 58.5 141.5T480-320v80q-14 0-27-1.5t-13-1.5v123Z" />
+                    <path fill="#ea4335" d="M480-320q83 0 141.5-58.5T680-520h80q0 105-68 184t-172 93v123h-40v-200Z" />
+                  </svg>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+                    <path d="M4 9V7a3 3 0 0 1 3-3h2" stroke="#ea4335" />
+                    <path d="M15 4h2a3 3 0 0 1 3 3v2" stroke="#fbbc04" />
+                    <path d="M4 15v2a3 3 0 0 0 3 3h2" stroke="#34a853" />
+                    <circle cx="12" cy="12" r="3.2" stroke="#4285f4" />
+                    <circle cx="18" cy="18" r="1.6" fill="#4285f4" stroke="none" />
+                  </svg>
+                  <span className="ml-[2px] flex h-[36px] items-center gap-[6px] rounded-full px-[14px] text-[14px] font-medium" style={{ background: "#f1f3f4", color: "#1f1f1f" }}>
+                    <MS d={P.search} s={18} c="#1f1f1f" />
+                    AI Mode
+                  </span>
+                </div>
+                <div className="mt-[28px] flex flex-wrap justify-center gap-x-1 gap-y-1">
                   {ORDER.map((s) => (
-                    <button key={s} onClick={() => go(s)} className="flex w-[112px] flex-col items-center gap-[10px] rounded-xl py-3 hover:bg-[rgba(31,31,31,.06)]">
-                      <span className="flex h-[48px] w-[48px] items-center justify-center rounded-full" style={{ background: "#e9eef6" }}>
+                    <button key={s} onClick={() => go(s)} className="flex w-[104px] flex-col items-center gap-[8px] rounded-xl py-3 hover:bg-[rgba(255,255,255,.16)]">
+                      <span className="flex h-[48px] w-[48px] items-center justify-center rounded-full" style={{ background: "rgba(255,255,255,.92)" }}>
                         <Favicon site={s} s={24} />
                       </span>
-                      <span className="w-full truncate px-2 text-center text-[13px]" style={{ color: "#1f1f1f" }}>
+                      <span className="w-full truncate px-2 text-center text-[13px] text-white" style={{ textShadow: "0 1px 3px rgba(0,0,0,.5)" }}>
                         {SITES[s].short}
                       </span>
                     </button>
@@ -379,35 +415,13 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
 
       <Dock
         apps={[
-          { id: "finder", title: "Finder", icon: <img src="/mac/finder.svg" alt="" draggable={false} className="h-full w-full" />, open: true },
-          { id: "launchpad", title: "Launchpad", icon: <img src="/mac/launchpad.png" alt="" draggable={false} className="h-full w-full" />, open: false },
-          { id: "safari", title: "Safari", icon: <img src="/mac/safari.png" alt="" draggable={false} className="h-full w-full" />, open: false },
-          { id: "chrome", title: "Google Chrome", icon: <ChromeDockIcon />, open },
-          { id: "mail", title: "Mail", icon: <img src="/mac/mail.png" alt="" draggable={false} className="h-full w-full" />, open: false },
-          { id: "calendar", title: "Calendar", icon: <CalendarDockIcon />, open: false },
-          { id: "bear", title: "Bear", icon: <img src="/mac/bear.png" alt="" draggable={false} className="h-full w-full" />, open: false, sepAfter: true },
-          { id: "trash", title: "Trash", icon: <img src="/mac/trash.svg" alt="" draggable={false} className="h-full w-full" />, open: false },
+          { id: "finder", title: "Finder", icon: <img src="/mac/finder.png" alt="" draggable={false} className="h-full w-full" />, open: true },
+          { id: "chrome", title: "Google Chrome", icon: <img src="/mac/chrome.png" alt="" draggable={false} className="h-full w-full" />, open },
         ]}
         onOpen={(id) => {
           if (id === "chrome") openWin();
-          else if (id === "mail") go("mail");
-          else if (id === "calendar") go("calendar");
         }}
       />
-    </div>
-  );
-}
-
-function ChromeDockIcon() {
-  return (
-    <div className="flex h-full w-full items-center justify-center" style={{ containerType: "size" }}>
-      <div className="flex h-[84%] w-[84%] items-center justify-center rounded-full" style={{ background: "#fff", boxShadow: "0 1.5px 3px rgba(0,0,0,.28), 0 0 0 0.5px rgba(0,0,0,.08)" }}>
-        <div className="h-[104%] w-[104%]">
-          <svg width="100%" height="100%" viewBox="0 0 48 48" aria-hidden>
-            <ChromeMarks />
-          </svg>
-        </div>
-      </div>
     </div>
   );
 }
@@ -429,18 +443,5 @@ function ChromeMarks() {
       <circle cx="24" cy="24" r="9.6" fill="#fff" />
       <circle cx="24" cy="24" r="7.6" fill="#1a73e8" />
     </>
-  );
-}
-
-function CalendarDockIcon() {
-  return (
-    <div className="flex h-full w-full items-center justify-center">
-      <div className="flex h-[84%] w-[84%] flex-col items-center overflow-hidden rounded-[22.5%] bg-white leading-none" style={{ boxShadow: "0 1.5px 3px rgba(0,0,0,.28)", containerType: "size" }}>
-        <span className="mt-[9%]" style={{ color: "#ff3b30", fontSize: "18cqh", fontWeight: 600, letterSpacing: ".5px" }}>
-          SAT
-        </span>
-        <span style={{ color: "#1d1d1f", fontSize: "56cqh", fontWeight: 300, marginTop: "-2%" }}>3</span>
-      </div>
-    </div>
   );
 }

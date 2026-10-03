@@ -199,9 +199,7 @@ select {
 
 /* Agent's computer: glitch in/out over the Mac */
 .agent-view {
-  background:
-    repeating-linear-gradient(0deg, rgba(62, 207, 142, 0.035) 0 1px, transparent 1px 3px),
-    radial-gradient(120% 90% at 50% 0%, #07150f 0%, #020604 70%);
+  background: #050505;
 }
 .glitch-in { animation: glitch 0.45s steps(1) both; }
 .glitch-out { animation: glitch 0.45s steps(1) reverse both; animation-delay: 0.8s; }

@@ -29,7 +29,7 @@ export default function Playground() {
         <Label title={agent ? "Your agent’s computer" : "Your computer"} sub={agent ? "What your agent sees: data, not pixels" : "What you see"} green={agent} />
         <div className={`relative ${phase === "in" ? "glitch-shake" : phase === "out" ? "glitch-shake late" : ""}`}>
           <Mac objects={r.objects} live={r.live} />
-          {agent && <AgentView lines={r.lines} phase={phase === "out" ? "out" : phase === "in" ? "in" : "on"} />}
+          {agent && <AgentView lines={r.lines} prompt={r.run?.prompt} phase={phase === "out" ? "out" : phase === "in" ? "in" : "on"} />}
         </div>
       </div>
       <div>

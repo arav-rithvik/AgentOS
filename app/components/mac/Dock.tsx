@@ -6,7 +6,7 @@
 import { Fragment, useRef } from "react";
 import { motion, useAnimationFrame, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
 
-const SIZE = 50;
+const SIZE = 48;
 const MAG = 1.55;
 
 function useHover(mouseX: MotionValue<number | null>, ref: React.RefObject<HTMLDivElement | null>) {
@@ -33,7 +33,7 @@ function Item({ app, mouseX, onClick }: { app: DockApp; mouseX: MotionValue<numb
   const width = useHover(mouseX, ref);
   return (
     <li className="group relative flex flex-col items-center justify-end pb-[5px]" onClick={onClick}>
-      <p className="pointer-events-none absolute -top-[34px] hidden w-max rounded-[6px] px-[10px] py-[3px] text-[13px] group-hover:block" style={{ color: "#1d1d1f", background: "rgba(240,240,240,.82)", backdropFilter: "blur(20px)", boxShadow: "0 0 0 0.5px rgba(0,0,0,.15), 0 2px 8px rgba(0,0,0,.18)" }}>
+      <p className="pointer-events-none absolute -top-[40px] hidden w-max rounded-full px-[12px] py-[4px] text-[13px] font-medium group-hover:block" style={{ color: "#fff", background: "rgba(40,40,44,.82)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", boxShadow: "0 0 0 0.5px rgba(255,255,255,.18), 0 4px 12px rgba(0,0,0,.25)" }}>
         {app.title}
       </p>
       <motion.div ref={ref} style={{ width, height: width }} className="cursor-pointer">
@@ -49,8 +49,8 @@ export default function Dock({ apps, onOpen }: { apps: DockApp[]; onOpen: (id: s
   return (
     <div className="absolute inset-x-0 bottom-[6px] z-[56] mx-auto w-max">
       <ul
-        className="flex items-end gap-[6px] px-[8px]"
-        style={{ height: SIZE + 14, borderRadius: 22, background: "rgba(246,246,248,.28)", backdropFilter: "blur(28px) saturate(1.8)", WebkitBackdropFilter: "blur(28px) saturate(1.8)", boxShadow: "inset 0 0 0 0.5px rgba(255,255,255,.55), inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 0.5px rgba(0,0,0,.18), 0 8px 30px rgba(0,0,0,.22)" }}
+        className="flex items-end gap-[8px] px-[10px]"
+        style={{ height: SIZE + 16, borderRadius: 24, background: "rgba(255,255,255,.22)", border: "1px solid rgba(255,255,255,.42)", backdropFilter: "blur(30px) saturate(1.8)", WebkitBackdropFilter: "blur(30px) saturate(1.8)", boxShadow: "inset 0 1px 0 rgba(255,255,255,.35), 0 10px 30px rgba(0,0,0,.2)" }}
         onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(null)}
       >
