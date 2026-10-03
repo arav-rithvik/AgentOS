@@ -144,7 +144,7 @@ Row types for all of these are in `app/lib/types.ts`. Preset labels are in `app/
 
 - [x] **S1. GitHub repo.** Done: `arav-rithvik/AgentOS`.
 - [x] **S2. App.** Arav: run `npx create-next-app@latest app --ts --tailwind --app --yes` in the repo. Push.
-- [ ] **S3. Supabase project.** Arav: make a new project.
+- [x] **S3. Supabase project.** Arav: make a new project.
 - [ ] **S4. Keys.** Both: make `app/.env.local` with the env vars above. Do not commit it.
 - [ ] **S5. Vercel.** Rithvik: import the repo. Root directory `app`. Add the env vars. Check the URL opens.
 - [ ] **S6. Folders.** Arav owns `app/lib/`, `app/app/api/`, `app/supabase/`. Rithvik owns all pages and `app/components/`.
@@ -154,26 +154,26 @@ Row types for all of these are in `app/lib/types.ts`. Preset labels are in `app/
 ## A. Arav: the computer and the agent
 
 ### A1. Tables and seed data (10 min)
-- [ ] **A1.1** Write `supabase/schema.sql` with the five tables from the contract.
-- [ ] **A1.2** Turn on row-level security. Add one policy for each table: anyone can read. No write policy.
-- [ ] **A1.3** Seed `jobs`: 5 boards, 20+ ML internship postings with real-looking companies. About half posted today, half older. Put 5 or 6 of the same job (same company and title) on two boards, so dedupe has work to do.
-- [ ] **A1.4** Seed `events`: 4 rows with `kind = 'deadline'` this week (for example "Bio lab report due"), and 2 normal events.
-- [ ] **A1.5** Turn on Realtime for `docs`, `events`, `action_log`, `runs`. Run the file in the Supabase SQL editor.
+- [x] **A1.1** Write `supabase/schema.sql` with the five tables from the contract.
+- [x] **A1.2** Turn on row-level security. Add one policy for each table: anyone can read. No write policy.
+- [x] **A1.3** Seed `jobs`: 5 boards, 20+ ML internship postings with real-looking companies. About half posted today, half older. Put 5 or 6 of the same job (same company and title) on two boards, so dedupe has work to do.
+- [x] **A1.4** Seed `events`: 4 rows with `kind = 'deadline'` this week (for example "Bio lab report due"), and 2 normal events.
+- [x] **A1.5** Turn on Realtime for `docs`, `events`, `action_log`, `runs`. Run the file in the Supabase SQL editor.
 - **Done when:** `select count(*) from jobs` is 20 or more.
 
 ### A2. Drivers with receipts (15 min)
-- [ ] **A2.1** Write `lib/manifest.ts`: the five driver actions, with their args, as one object.
-- [ ] **A2.2** Write `lib/drivers.ts`: one function `call(runId, action, args)`. It runs the correct database read or write with the service role key.
-- [ ] **A2.3** Each `call` builds the receipt from the contract and inserts one `action_log` row with `latency_ms`.
-- [ ] **A2.4** A create sets `run_id` on the new row.
+- [x] **A2.1** Write `lib/manifest.ts`: the five driver actions, with their args, as one object.
+- [x] **A2.2** Write `lib/drivers.ts`: one function `call(runId, action, args)`. It runs the correct database read or write with the service role key.
+- [x] **A2.3** Each `call` builds the receipt from the contract and inserts one `action_log` row with `latency_ms`.
+- [x] **A2.4** A create sets `run_id` on the new row.
 - **Done when:** `call(runId, "jobboard.jobs.list", { board: "a", posted: "today" })` returns jobs and makes one `action_log` row.
 
 ### A3. Agent loop (20 min)
-- [ ] **A3.1** Write `lib/agent.ts`. Put the manifest in the system prompt. Give Claude one tool: `call(action, args)`.
-- [ ] **A3.2** Tell Claude to send independent calls in the same turn. Run those calls in parallel on the server.
-- [ ] **A3.3** After each model turn, update the `runs` row: steps, input tokens, output tokens, ms. Put that turn's tokens on its `action_log` rows.
-- [ ] **A3.4** At the end, set `status` to `done` and `summary` to one line (for example "23 roles on 5 boards, 17 after dedupe, ranked doc written").
-- [ ] **A3.5** Write `app/api/run/route.ts`: map the preset to its prompt, insert the `runs` row, return `{ runId }` at once, and finish the run in the background.
+- [x] **A3.1** Write `lib/agent.ts`. Put the manifest in the system prompt. Give Claude one tool: `call(action, args)`.
+- [x] **A3.2** Tell Claude to send independent calls in the same turn. Run those calls in parallel on the server.
+- [x] **A3.3** After each model turn, update the `runs` row: steps, input tokens, output tokens, ms. Put that turn's tokens on its `action_log` rows.
+- [x] **A3.4** At the end, set `status` to `done` and `summary` to one line (for example "23 roles on 5 boards, 17 after dedupe, ranked doc written").
+- [x] **A3.5** Write `app/api/run/route.ts`: map the preset to its prompt, insert the `runs` row, return `{ runId }` at once, and finish the run in the background.
 - **Done when:** a `curl` call with `{ "preset": "internships" }` makes 5 `jobs.list` rows, 1 `docs.create` row, a ranked and deduped doc, and it takes under 15 seconds.
 
 If it is over 15 seconds: set `AGENTOS_MODEL=claude-sonnet-5-5` and measure again.
