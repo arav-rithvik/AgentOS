@@ -1,4 +1,20 @@
-# AgentOS: where we are, and what's next (Sat Oct 3, ~4:45 PM)
+# AgentOS: where we are, and what's next (Sat Oct 3, ~4:40 PM)
+
+## ⚡ Latest (read this first)
+
+- **The demo is the internship task.** The judge sees one pre-filled prompt, "Find today's ML internships across 5 boards and write me a ranked doc.", and presses send.
+  - The right side streams the real system calls: 5× `jobboard.jobs.list`, then `docs.create`.
+  - A Mac notification sends them to Docs → "ML internships - today".
+  - A local real run took 9,964 ms, 14,227 tokens, 6 calls.
+- **Arav: put your benchmark numbers in `app/components/benchmark.ts`.** Use exact values (ms, tokens, actions, screenshots) for Muse, Grok Bot, Instinct, Dots and Claude. `null` shows as "—". AgentOS's box fills itself from each live run.
+- **Real Chrome (Steel) is removed completely.** The Mac is a drawn replica, and the page says so.
+- **Rithvik touched your folders (please glance):**
+  - `app/app/api/run/[id]/route.ts` and `app/app/api/seed/route.ts`: the page polls these with the service key instead of Realtime, because the anon key gets a 401.
+  - The salon "SuperSnips" is renamed to "Fade & Co." in the DB, in `lib/manifest.ts` and in `supabase/schema.sql`.
+- **Board names now match the engine everywhere** (Launchpad, InternLoop, ResearchHire, CampusGrid, Stackwise Jobs), so item 3 below is done.
+- **Copy rule from AGENTS.md:** we never claim agent OAuth is built. The page says OAuth to real accounts isn't set up yet.
+
+---
 
 **One line:** AgentOS is the operating system for agents, not an agent. The agent's tool calls are its system calls, and the agent never looks at a screen.
 

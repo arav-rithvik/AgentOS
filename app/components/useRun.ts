@@ -10,6 +10,7 @@ import { describe, LIVE, local, toPreset } from "./live";
 
 export type Line = { id: string; text: string; action?: Action; pending?: boolean; group?: string; req?: { call: string; args: Record<string, unknown> } };
 export type Site = "jobs" | "docs" | "calendar" | "mail" | "cuts";
+export type Live = { app: Site; key?: string; t: number; keys?: Partial<Record<Site, string>> };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let n = 0;
@@ -25,7 +26,7 @@ export function useRun() {
   const [objects, setObjects] = useState<Obj[]>(seedObjects);
   const [lines, setLines] = useState<Line[]>([]);
   const [run, setRun] = useState<Run | null>(null);
-  const [live, setLive] = useState<{ app: Site; key?: string; t: number } | null>(null);
+  const [live, setLive] = useState<Live | null>(null);
   const busy = useRef(false);
   const objRef = useRef(objects);
   objRef.current = objects;
@@ -34,7 +35,8 @@ export function useRun() {
   const patch = (id: string, u: Partial<Line>) => setLines((p) => p.map((l) => (l.id === id ? { ...l, ...u } : l)));
   const tick = (u: Partial<Run>) => setRun((r) => (r ? { ...r, ...u } : r));
   const add = (o: Obj) => setObjects((os) => [...os, o]);
-  const show = (app: Site, key?: string) => setLive({ app, key, t: Date.now() });
+  // `keys` remembers the agent's last write in each app, so every app opens on what changed.
+  const show = (app: Site, key?: string) => setLive((p) => ({ app, key, t: Date.now(), keys: { ...p?.keys, ...(key ? { [app]: key } : {}) } }));
 
   // Live: the calendar shows the real seeded events (deadlines etc.), not the offline seed.
   const loadSeed = useCallback(async () => {

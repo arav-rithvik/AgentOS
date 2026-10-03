@@ -17,11 +17,11 @@ export type Action = { id: string; run_id: string; call: string; args: Record<st
 export type Run = { id: string; prompt: string; status: "running" | "done" | "error"; result: string | null; steps: number; input_tokens: number; output_tokens: number; ms: number };
 
 export const BOARDS = [
-  { id: "a", app: "board_a", name: "Northwind Jobs", color: "#2563eb", bg: "#eff4ff" },
-  { id: "b", app: "board_b", name: "Lattice Careers", color: "#7c3aed", bg: "#f4efff" },
-  { id: "c", app: "board_c", name: "Gradhire", color: "#ea580c", bg: "#fff4ec" },
-  { id: "d", app: "board_d", name: "InternStack", color: "#0d9488", bg: "#ebfaf8" },
-  { id: "e", app: "board_e", name: "Sprout Board", color: "#db2777", bg: "#fff0f6" },
+  { id: "a", app: "board_a", name: "Launchpad", color: "#2563eb", bg: "#eff4ff" },
+  { id: "b", app: "board_b", name: "InternLoop", color: "#7c3aed", bg: "#f4efff" },
+  { id: "c", app: "board_c", name: "ResearchHire", color: "#ea580c", bg: "#fff4ec" },
+  { id: "d", app: "board_d", name: "CampusGrid", color: "#0d9488", bg: "#ebfaf8" },
+  { id: "e", app: "board_e", name: "Stackwise Jobs", color: "#db2777", bg: "#fff0f6" },
 ] as const;
 
 const J = (app: string, n: number, title: string, company: string, location: string, posted: string): Obj => ({
@@ -69,7 +69,7 @@ export const seedObjects: Obj[] = [
   J("board_e", 6, "AI Safety Research Intern", "Clearpath Alignment", "Berkeley", TODAY),
 
   { app: "mail", type: "mail", key: "mail_1", data: { folder: "inbox", from: "Maya Chen", email: "maya.chen@gmail.com", to: "rithvik@agentos.dev", subject: "Coffee next week?", body: "Hey! Are you free Tuesday after 3? Want to hear how the hackathon went.\n\nMaya", at: "1:12 PM", unread: true } },
-  { app: "mail", type: "mail", key: "mail_2", data: { folder: "inbox", from: "Northwind Jobs", email: "alerts@northwindjobs.com", to: "rithvik@agentos.dev", subject: "4 new internships match your alert", body: "ML Research Intern at Halcyon Labs and 3 more roles were posted today.", at: "12:41 PM", unread: true } },
+  { app: "mail", type: "mail", key: "mail_2", data: { folder: "inbox", from: "Launchpad", email: "alerts@launchpad.jobs", to: "rithvik@agentos.dev", subject: "4 new internships match your alert", body: "ML Research Intern at Halcyon Labs and 3 more roles were posted today.", at: "12:41 PM", unread: true } },
   { app: "mail", type: "mail", key: "mail_3", data: { folder: "inbox", from: "Fade & Co.", email: "hello@fadeandco.com", to: "rithvik@agentos.dev", subject: "It's been 4 weeks since your last cut", body: "Book online any time. Marcus has openings this weekend.", at: "10:05 AM", unread: false } },
   { app: "mail", type: "mail", key: "mail_4", data: { folder: "inbox", from: "Gradhire", email: "no-reply@gradhire.com", to: "rithvik@agentos.dev", subject: "Your application was received", body: "Thanks for applying to Speech ML Intern at Echoform.", at: "Yesterday", unread: false } },
   { app: "docs", type: "doc", key: "doc_1", data: { title: "Resume notes", body: "Keep it to one page. Lead with shipped projects." } },

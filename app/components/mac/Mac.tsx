@@ -2,12 +2,10 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Obj, Run } from "../data";
-import type { Site } from "../useRun";
+import type { Live, Site } from "../useRun";
 import Dock from "./Dock";
 import { CalendarSite, CutsSite, DocsSite, MailSite } from "../web/Sites";
-import { AgentOSSite } from "../web/AgentOSSite";
 import { MS, P } from "../web/icons";
-import { realPath, useRealChrome } from "./RealChrome";
 
 type Tab = Site | "newtab" | "agentos";
 
@@ -17,11 +15,11 @@ const SITES: Record<Site, { title: string; host: string; path: string; short: st
   docs: { title: "Docs", host: "docs.agentos.dev", path: "/document/u/0/", short: "Docs" },
   calendar: { title: "Calendar - October 2026", host: "calendar.agentos.dev", path: "/r/week/2026/10/3", short: "Calendar" },
   cuts: { title: "Fade & Co. | Book Online", host: "fadeandco.com", path: "/book", short: "Fade & Co." },
-  jobs: { title: "Internships | Northwind Jobs", host: "northwindjobs.com", path: "/internships", short: "Northwind Jobs" },
+  jobs: { title: "Internships | Launchpad", host: "launchpad.jobs", path: "/internships", short: "Launchpad" },
 };
 const AGENTOS_TAB = { title: "AgentOS", host: "agentsos.vercel.app", path: "/", short: "AgentOS" };
 const meta = (t: Site | "agentos") => (t === "agentos" ? AGENTOS_TAB : SITES[t]);
-const ORDER: Site[] = ["mail", "docs", "calendar", "cuts", "jobs"];
+const ORDER: Site[] = ["mail", "docs", "calendar", "cuts"];
 const SANS = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif';
 
 const APPLE = "M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701";
@@ -105,18 +103,17 @@ function clockText() {
   return `${wd} ${mo} ${d.getDate()} ${h % 12 || 12}:${p2(d.getMinutes())}:${p2(d.getSeconds())} ${h >= 12 ? "PM" : "AM"}`;
 }
 
-export default function Mac({ objects, live, run, start }: { objects: Obj[]; live: { app: Site; key?: string; t: number } | null; run: Run | null; start: (p: string) => void }) {
+export default function Mac({ objects, live, run }: { objects: Obj[]; live: Live | null; run: Run | null }) {
   const [open, setOpen] = useState(true);
   const [max, setMax] = useState(true);
   const [pos, setPos] = useState({ x: 70, y: 52 });
-  const [tabs, setTabs] = useState<Tab[]>(["agentos", "mail", "calendar", "cuts"]);
-  const [active, setActive] = useState<Tab>("agentos");
+  const [tabs, setTabs] = useState<Tab[]>(["docs", "mail", "calendar"]);
+  const [active, setActive] = useState<Tab>("docs");
   const [clock, setClock] = useState("Sat Oct 3 3:38:02 PM");
   const win = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const popNext = useRef(false);
-  const { real, show: showReal, boot } = useRealChrome(root);
-  const [realReady, setRealReady] = useState(false);
+  const [dismissed, setDismissed] = useState<string | null>(null);
 
   useEffect(() => {
     const f = () => setClock(clockText());
@@ -156,21 +153,8 @@ export default function Mac({ objects, live, run, start }: { objects: Obj[]; liv
     openWin();
   };
 
-  // The agent works on AgentOS, not on this screen. The computer doesn't jump around:
-  // you open your apps yourself to check the result.
-  useEffect(() => {
-    if (live) boot();
-  }, [live, boot]);
-
-  // Real Chrome: keep the cloud browser on the same page as the active drawn tab.
-  const latest = useRef(objects);
-  useEffect(() => {
-    latest.current = objects;
-  }, [objects]);
-  useEffect(() => {
-    if (!real || active === "newtab" || active === "agentos") return;
-    showReal(realPath(active, latest.current, live && live.app === active ? live.key : undefined));
-  }, [real, active, live, showReal]);
+  // The agent works on AgentOS, not on this screen. When it finishes, a notification tells you where to check.
+  const note = run?.status === "done" && dismissed !== run.id;
 
   const closeTab = (t: Tab) => {
     const i = tabs.indexOf(t);
@@ -199,17 +183,37 @@ export default function Mac({ objects, live, run, start }: { objects: Obj[]; liv
     window.addEventListener("mouseup", up);
   };
 
-  const hl = live && live.app === active ? live.key : undefined;
+  const hl = active === "newtab" || active === "agentos" ? undefined : live?.keys?.[active];
   const drawn = active === "newtab" ? null : meta(active);
-  const realHost = real ? new URL(real.origin).host : null;
-  const site = drawn && realHost && active !== "agentos" ? { ...drawn, host: realHost, path: active === "jobs" ? "/boards/a" : `/web/${active}` } : drawn;
-  const streaming = !!real && realReady && active !== "newtab" && active !== "agentos";
+  const site = drawn;
   const ai = tabs.indexOf(active);
   const frame = "#dfe3e7";
   const geo = max ? { left: 8, top: 31, right: 8, bottom: 78 } : { left: pos.x, top: pos.y, width: "78%", height: 470 };
 
   return (
     <div ref={root} className="relative h-[680px] select-none overflow-hidden [&_[role=button]]:cursor-pointer [&_button]:cursor-pointer" style={{ borderRadius: 14, backgroundImage: `url(${WALLPAPER})`, backgroundSize: "cover", backgroundPosition: "center", fontFamily: SANS, boxShadow: "0 0 0 1px #2a2a2a", WebkitFontSmoothing: "antialiased" }}>
+      {/* notification: AgentOS finished, go check */}
+      {note && run && (
+        <button
+          onClick={() => {
+            setDismissed(run.id);
+            go("docs");
+          }}
+          className="note-in absolute right-[10px] top-[32px] z-[90] flex w-[340px] items-start gap-3 rounded-[18px] p-3 text-left text-[13px] text-[#1d1d1f]"
+          style={{ background: "rgba(246,246,246,.86)", backdropFilter: "blur(30px) saturate(1.8)", WebkitBackdropFilter: "blur(30px) saturate(1.8)", boxShadow: "0 8px 30px rgba(0,0,0,.22), 0 0 0 .5px rgba(0,0,0,.12)" }}
+        >
+          <Favicon site="agentos" s={34} />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-baseline justify-between">
+              <b className="font-semibold">AgentOS</b>
+              <span className="text-[11.5px] text-[#86868b]">now</span>
+            </span>
+            <span className="mt-0.5 block font-semibold">Done in {(run.ms / 1000).toFixed(1)}s. Go check it yourself.</span>
+            <span className="block leading-snug text-[#3c3c43]">Your ranked internship list is in Docs: “ML internships - today”, deduped across all 5 boards.</span>
+          </span>
+        </button>
+      )}
+
       {/* menu bar */}
       <div className="absolute inset-x-0 top-0 z-[80] flex h-[24px] items-center justify-between pl-[14px] pr-[10px] text-[13px] text-white" style={{ background: "rgba(20,24,40,.16)", backdropFilter: "blur(24px) saturate(1.5)", WebkitBackdropFilter: "blur(24px) saturate(1.5)", textShadow: "0 0 6px rgba(0,0,0,.25)", letterSpacing: "-0.08px" }}>
         <div className="flex h-[24px] min-w-0 flex-1 flex-wrap items-center overflow-hidden whitespace-nowrap">
@@ -433,23 +437,11 @@ export default function Mac({ objects, live, run, start }: { objects: Obj[]; liv
                 </div>
               </div>
             )}
-            {active === "agentos" && <AgentOSSite run={run} start={start} onOpen={(x) => go(x)} />}
             {active === "mail" && <MailSite objects={objects} hl={hl} hlT={live?.t} />}
             {active === "docs" && <DocsSite objects={objects} hl={hl} hlT={live?.t} />}
             {active === "calendar" && <CalendarSite objects={objects} hl={hl} hlT={live?.t} />}
             {active === "cuts" && <CutsSite objects={objects} hl={hl} hlT={live?.t} />}
-            {active === "jobs" && <iframe src="/boards/a" title="Northwind Jobs" className="h-full w-full" style={{ border: 0 }} />}
-            {real && (
-              <iframe
-                key={real.id}
-                src={real.viewerUrl}
-                title="Chrome"
-                allow="autoplay; clipboard-read; clipboard-write; fullscreen"
-                onLoad={() => setRealReady(true)}
-                className="absolute inset-0 h-full w-full"
-                style={{ border: 0, background: "#fff", opacity: streaming ? 1 : 0, pointerEvents: streaming ? "auto" : "none", transition: "opacity .25s" }}
-              />
-            )}
+            {active === "jobs" && <iframe src="/boards/a" title="Launchpad" className="h-full w-full" style={{ border: 0 }} />}
           </div>
         </div>
       )}
