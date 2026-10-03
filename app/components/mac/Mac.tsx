@@ -209,7 +209,7 @@ export default function Mac({ objects, live, run }: { objects: Obj[]; live: Live
               <span className="text-[11.5px] text-[#86868b]">now</span>
             </span>
             <span className="mt-0.5 block font-semibold">Done in {(run.ms / 1000).toFixed(1)}s. Go check it yourself.</span>
-            <span className="block leading-snug text-[#3c3c43]">The ranked internship was put in your Google Docs.</span>
+            <span className="block leading-snug text-[#3c3c43]">The ranked internship was put in your Google Docs and saved to your Drive.</span>
           </span>
         </button>
       )}
