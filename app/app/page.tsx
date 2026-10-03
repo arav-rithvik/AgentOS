@@ -2,30 +2,6 @@ import Globe from "@/components/globe/Globe";
 import Playground from "@/components/Playground";
 import SupabaseLogo from "@/components/SupabaseLogo";
 
-// PLACEHOLDER numbers (the page labels them "preview"). Replace with measured runs before judging.
-const EVAL_PREVIEW = true;
-const EVAL: { agent: string; seconds: number | null; steps: number | null; tokens: number | null; tokensNote: "measured" | "estimated"; success: string | null }[] = [
-  { agent: "Computer-use agent (screenshots)", seconds: 142, steps: 58, tokens: 212000, tokensNote: "estimated", success: "3 / 5" },
-  { agent: "AgentOS", seconds: 9, steps: 4, tokens: 11800, tokensNote: "measured", success: "5 / 5" },
-];
-
-const RIVALS = [
-  { name: "Manus", src: "/agents/manus.svg", bg: "#fff", pad: 8 },
-  { name: "Instinct", src: "/agents/instinct.png", bg: "#fff", pad: 2 },
-  { name: "Dots", src: "/agents/dots.png", bg: "#000", pad: 0 },
-  { name: "Grok", src: "/agents/grok-white.svg", bg: "#000", pad: 9 },
-  { name: "Claude", src: "/agents/claude.svg", bg: "#fff", pad: 8 },
-];
-
-const BETTER: { title: string; them: string; us: string }[] = [
-  { title: "How it sees your apps", them: "A screenshot, or the accessibility tree, read again after every step.", us: "Every app is typed data: rows, fields and ids." },
-  { title: "How it acts", them: "Click at (x, y), type, scroll, then wait for the page to load.", us: "One typed call, like calendar.create(title, start)." },
-  { title: "How it knows it worked", them: "Takes another screenshot and guesses.", us: "Every call returns a receipt: what changed, its id, ok or error." },
-  { title: "How fast it goes", them: "One screen, one click at a time.", us: "Independent calls run in parallel. 5 job boards in one turn." },
-  { title: "What it costs", them: "Thousands of image tokens on every step.", us: "Zero screenshots. Text in, text out." },
-  { title: "What you can check", them: "A video of a cursor moving.", us: "A log of every step, with its receipt, that you can open." },
-];
-
 // Real answers only: each agent was asked "what would you want out of an agent-native OS?"
 // Logos: Grok and Claude from @lobehub/icons-static-svg; Instinct, Dots and Muse from the team.
 // Muse: add a card here once its verbatim reply is in (logo is public/agents/muse.png).
@@ -99,90 +75,6 @@ export default function Home() {
       <section id="try" className="mx-auto w-full max-w-[1340px] px-4 pt-20">
         <Playground />
       </section>
-
-      <section className="mx-auto w-full max-w-[1340px] px-4 pt-28">
-        <h2 className="mono text-center text-[28px] leading-tight sm:text-[40px]">Every other agent drives a screen.</h2>
-        <p className="mx-auto mt-4 max-w-[680px] text-center text-[16px] leading-relaxed" style={{ color: "var(--dim)" }}>
-          Manus, Instinct, Dots, Grok and Claude&apos;s computer use all work the same way: look at a screenshot, guess where to click, take another screenshot. AgentOS gives agents the computer as data.
-        </p>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          {RIVALS.map((r) => (
-            <div key={r.name} className="flex items-center gap-2 rounded-full border py-1 pl-1 pr-3" style={{ borderColor: "var(--line-2)" }}>
-              <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full" style={{ background: r.bg, padding: r.pad / 2 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={r.src} alt="" className={r.pad ? "h-full w-full object-contain" : "h-full w-full object-cover"} />
-              </span>
-              <span className="text-[13px]">{r.name}</span>
-            </div>
-          ))}
-          <span className="mono px-2 text-[18px]" style={{ color: "var(--faint)" }}>
-            →
-          </span>
-          <div className="mono flex items-center gap-2 rounded-full border px-4 py-1.5 text-[13px]" style={{ borderColor: "var(--green)", color: "var(--green)" }}>
-            AgentOS
-          </div>
-        </div>
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {BETTER.map((b) => (
-            <div key={b.title} className="rounded-2xl border p-6 transition-colors hover:border-[var(--green-dim)]" style={{ borderColor: "var(--line-2)", background: "var(--panel)" }}>
-              <div className="mono text-[13px] uppercase tracking-[0.12em]" style={{ color: "var(--fg)" }}>
-                {b.title}
-              </div>
-              <div className="mt-5 flex gap-3 text-[15px] leading-snug">
-                <span className="mono w-16 shrink-0 text-[11px] uppercase tracking-[0.1em]" style={{ color: "var(--faint)", paddingTop: 3 }}>
-                  Others
-                </span>
-                <span style={{ color: "var(--dim)" }}>{b.them}</span>
-              </div>
-              <div className="mt-3 flex gap-3 text-[15px] leading-snug">
-                <span className="mono w-16 shrink-0 text-[11px] uppercase tracking-[0.1em]" style={{ color: "var(--green)", paddingTop: 3 }}>
-                  AgentOS
-                </span>
-                <span>{b.us}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {EVAL.some((e) => e.seconds !== null) && (
-        <section className="mx-auto w-full max-w-[1340px] px-4 pt-24">
-          <div className="mono mb-6 flex flex-wrap items-center gap-3 text-[12px] tracking-[0.14em]">
-            <span>THE RACE · SAME TASK, SAME 5 BOARDS</span>
-            {EVAL_PREVIEW && (
-              <span className="rounded-full border px-2 py-0.5 text-[10px] tracking-[0.1em]" style={{ borderColor: "var(--amber)", color: "var(--amber)" }}>
-                PREVIEW NUMBERS · MEASURED RUNS COMING
-              </span>
-            )}
-          </div>
-          <div className="frame mono overflow-x-auto text-[13px]">
-            <table className="w-full">
-              <thead style={{ color: "var(--faint)" }}>
-                <tr className="text-left text-[11px] uppercase tracking-[0.1em]">
-                  {["agent", "time", "steps", "tokens", "success"].map((h) => (
-                    <th key={h} className="px-4 py-3 font-normal">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {EVAL.map((e) => (
-                  <tr key={e.agent} style={{ borderTop: "1px solid var(--line)", color: e.agent === "AgentOS" ? "var(--green)" : "var(--fg)" }}>
-                    <td className="px-4 py-3">{e.agent}</td>
-                    <td className="px-4 py-3">{e.seconds ?? "–"}s</td>
-                    <td className="px-4 py-3">{e.steps ?? "–"}</td>
-                    <td className="px-4 py-3">
-                      {e.tokens?.toLocaleString() ?? "–"} <span style={{ color: "var(--faint)" }}>{e.tokensNote}</span>
-                    </td>
-                    <td className="px-4 py-3">{e.success ?? "–"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
 
       <section className="py-28">
         <h2 className="mono px-4 text-center text-[28px] leading-tight sm:text-[40px]">Agent Testimonies</h2>
