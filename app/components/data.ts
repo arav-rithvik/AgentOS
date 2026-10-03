@@ -80,6 +80,6 @@ export const seedObjects: Obj[] = [
 
 export const PRESETS = [
   { label: "Weekend plan", prompt: "Tomorrow: book a haircut, 2 concert tickets and a flight home, all on my calendar." },
-  { label: "Internship hunt", prompt: "Open all 5 job boards, pull every ML internship posted today, merge the ones listed on more than one board, rank the rest for hands-on ML research, and write a new doc with each role’s link and every board it’s on." },
+  { label: "Internship hunt", prompt: "Open all 5 job boards, pull every ML internship posted today, merge the ones listed on more than one board, rank the rest for hands-on ML research, and write a new doc with each role’s link and every board it’s on, and make sure it’s saved to my Drive." },
   { label: "Study blocks", prompt: "Block study time for everything due this week." },
 ];
