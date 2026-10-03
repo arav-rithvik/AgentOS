@@ -28,4 +28,6 @@ Submission is due at 5:30 PM PDT on Oct 3, 2026. Building stops at 4:30 PM.
 
 ## If you are late
 
-Cut in this order: voice, Scene 4 (denied), Scene 3 (fork). Never cut Scene 1 (task with receipts) or Scene 2 (undo).
+Cut in this order: voice, Scene 1 (ask). Never cut Scene 2 (act) or Scene 3 (race against a pixel agent).
+
+Do not build undo, fork or scoped identity. They are roadmap only.

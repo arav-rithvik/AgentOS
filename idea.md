@@ -8,6 +8,11 @@ The computer for agents. An operating system whose native interface is structure
 
 Pitch line: every agent today is a person feeling around a dark room by touching pixels. AgentOS turns the lights on and hands the agent the room as data.
 
+## Scope of the hackathon build (decided 2:15 PM, Oct 3)
+The build and the demo cover one thing: **the world as queryable data, not pixels.** An agent queries and changes typed objects directly, and we measure it against a pixel agent on the same task.
+
+Not built: receipts with verification, undo, forking, scoped identity. These are roadmap. Do not build them. In the demo, present them as "next", not as working features.
+
 ## Problem
 - Operating systems (Linux, macOS, Windows) are built for humans.
 - Computer-use agents (Grok Bot, Muse, Instinct and others) first used screenshots and pixel matching, now use the accessibility tree.
@@ -23,10 +28,11 @@ Pitch line: every agent today is a person feeling around a dark room by touching
 - Mail is message objects, calendar is event objects: typed and queryable.
 - A selection layer lets the agent choose among options (voice brain dump mentioned "something like Jev" - unclear, see open questions).
 - An LLM (Claude) drives it.
-- Supabase is the backing layer, with agent OAuth for scoped access to real accounts.
+- Supabase is the backing layer: Postgres holds the objects, Auth signs the user in, row-level security keeps each user's world private, Realtime shows changes live.
 
 ## What agents want from an agent-native OS (target-user evidence)
 Source: the agent's own account of daily operation.
+Item 1 is the hackathon build. Items 2 to 5 are roadmap.
 1. The world as data, not pixels. UI tasks mean guessing at coordinates on a screenshot. That is most of token burn and most failure modes.
 2. Receipts. After acting, the agent must re-read the world and infer whether it worked. Every call should return intended vs actual change. Kills the "did that send?" class of bugs.
 3. Undo. Agents have no cmd-Z. Snapshot the world, act, roll back. With a checkpoint underneath, agents act far more boldly.
@@ -39,16 +45,16 @@ Key insight: the killer of computer use is reliability, not speed. Structured st
 - vs MCP: MCP wraps existing human apps one at a time, so the agent is limited to whatever someone wrote a server for. AgentOS is the whole environment as structured state.
 - vs sandboxes: never use the word "sandbox". Position as "the computer for agents".
 - vs screenshot / accessibility-tree computer use: no pixel matching, far fewer tokens, verifiable actions.
-- Unique angle few will demo: OS-level action log with audit and undo.
+- Roadmap, not built: an OS-level action log with receipts, undo, forking and scoped identity.
 
 ## Demo plan
 One hero task, full loop:
-1. Voice in (DeepMind voice credits).
-2. OAuth into a real account via Supabase agent OAuth.
-3. Multi-step execution through structured state.
-4. Eval numbers on screen (time and tokens).
-Do it live. Record a backup video first.
-Stretch (about one hour): action log with undo.
+1. Sign in with Supabase Auth.
+2. Ask: the agent answers a question by querying the world.
+3. Act: multi-step execution through structured state.
+4. Race: the same task by a pixel agent on the same page, with measured time and steps on screen.
+Record a backup video first. Voice in is a stretch only.
+The scene-by-scene plan is in `TASKS.md`.
 
 ## Eval metrics
 - Task completion time, AgentOS vs screenshot-loop baseline.
@@ -77,6 +83,6 @@ Redemption codes are in Arav's original message; keep them out of the repo.
 - What is "Jev" in the voice dump (likely a transcription error)? What picks options?
 - Which hero task is the most legible in 2 minutes?
 - Which baseline do we compare against (Claude computer use? accessibility-tree agent)?
-- Is the undo/action log in scope given the 5:30 PM deadline?
+- Undo, fork and scoped identity: answered, not in scope.
 - Who is on the team and present in the room?
 - Judging criteria mapping (see TODO above).
