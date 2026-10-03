@@ -1,4 +1,3 @@
-import { chromium } from "playwright-core";
 import { absolute, cdpUrl, readJson, steel } from "../_steel";
 
 export const maxDuration = 60;
@@ -12,7 +11,7 @@ export async function POST(req: Request) {
   if (!target) return Response.json({ error: "url must be same-origin" }, { status: 400 });
 
   try {
-    const browser = await chromium.connectOverCDP(cdpUrl(id));
+    const browser = await (await import("playwright-core")).chromium.connectOverCDP(cdpUrl(id));
     try {
       const ctx = browser.contexts()[0] ?? (await browser.newContext());
       const pages = ctx.pages();

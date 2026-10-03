@@ -1,4 +1,3 @@
-import { chromium } from "playwright-core";
 import { cdpUrl, siteOrigin, steel } from "./_steel";
 
 export const maxDuration = 60;
@@ -14,7 +13,7 @@ export async function POST(req: Request) {
     // Sized to the Mac's Chrome content area (wide, short) so the stream fills it.
     const session = await client.sessions.create({ timeout: 10 * 60 * 1000, dimensions: { width: 1280, height: 560 }, blockAds: true });
     id = session.id;
-    const browser = await chromium.connectOverCDP(cdpUrl(session.id));
+    const browser = await (await import("playwright-core")).chromium.connectOverCDP(cdpUrl(session.id));
     try {
       const ctx = browser.contexts()[0] ?? (await browser.newContext());
       const page = ctx.pages()[0] ?? (await ctx.newPage());
