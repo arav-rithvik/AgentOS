@@ -112,7 +112,7 @@ Two additions, and why:
 ## S. Setup (together, 15 minutes)
 
 - [x] **S1. GitHub repo.** Done: `arav-rithvik/AgentOS`.
-- [ ] **S2. App.** Arav: run `npx create-next-app@latest app --ts --tailwind --app --yes` in the repo. Push.
+- [x] **S2. App.** Arav: run `npx create-next-app@latest app --ts --tailwind --app --yes` in the repo. Push.
 - [ ] **S3. Supabase project.** Arav: make a new project.
 - [ ] **S4. Keys.** Both: make `app/.env.local` with the env vars above. Do not commit it.
 - [ ] **S5. Vercel.** Rithvik: import the repo. Root directory `app`. Add the env vars. Check the URL opens.
