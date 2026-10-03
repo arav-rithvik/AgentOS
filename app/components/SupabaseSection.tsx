@@ -53,6 +53,9 @@ export default function SupabaseSection() {
         <SupabaseLogo size={30} />
         <div className="mono text-[22px] leading-tight tracking-tight sm:text-[26px]">Runs on Supabase</div>
       </div>
+      <div className="mono mt-2 text-[15px] leading-snug sm:text-[17px]" style={{ color: "var(--green)" }}>
+        Built for its new MCP Server and Compute, from yesterday’s Supabase Select.
+      </div>
       <p className="mt-3 max-w-[820px] text-[17px] leading-relaxed" style={{ color: "#d6d6d6" }}>
         AgentOS is one Supabase project. The world your agent sees is Postgres. Everything it does is a row. Who can touch what is Row Level Security. Watching it work is Realtime.
       </p>
