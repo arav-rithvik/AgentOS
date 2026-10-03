@@ -415,7 +415,6 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
 
       <Dock
         apps={[
-          { id: "finder", title: "Finder", icon: <img src="/mac/finder.png" alt="" draggable={false} className="h-full w-full" />, open: true },
           { id: "chrome", title: "Google Chrome", icon: <img src="/mac/chrome.png" alt="" draggable={false} className="h-full w-full" />, open },
         ]}
         onOpen={(id) => {
