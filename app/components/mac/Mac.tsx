@@ -6,6 +6,7 @@ import type { Site } from "../useRun";
 import Dock from "./Dock";
 import { CalendarSite, CutsSite, DocsSite, MailSite } from "../web/Sites";
 import { MS, P } from "../web/icons";
+import { realPath, useRealChrome } from "./RealChrome";
 
 type Tab = Site | "newtab";
 
@@ -101,7 +102,10 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
   const [active, setActive] = useState<Tab>("mail");
   const [clock, setClock] = useState("Sat Oct 3 3:38:02 PM");
   const win = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLDivElement>(null);
   const popNext = useRef(false);
+  const { real, show: showReal, boot } = useRealChrome(root);
+  const [realReady, setRealReady] = useState(false);
 
   useEffect(() => {
     const f = () => setClock(clockText());
@@ -143,8 +147,21 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
 
   // The agent works in data on the AgentOS side; this computer just shows each change land.
   useEffect(() => {
-    if (live) go(live.app);
+    if (live) {
+      boot();
+      go(live.app);
+    }
   }, [live]);
+
+  // Real Chrome: keep the cloud browser on the same page as the active drawn tab.
+  const latest = useRef(objects);
+  useEffect(() => {
+    latest.current = objects;
+  }, [objects]);
+  useEffect(() => {
+    if (!real || active === "newtab") return;
+    showReal(realPath(active, latest.current, live && live.app === active ? live.key : undefined));
+  }, [real, active, live, showReal]);
 
   const closeTab = (t: Tab) => {
     const i = tabs.indexOf(t);
@@ -174,13 +191,16 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
   };
 
   const hl = live && live.app === active ? live.key : undefined;
-  const site = active === "newtab" ? null : SITES[active];
+  const drawn = active === "newtab" ? null : SITES[active];
+  const realHost = real ? new URL(real.origin).host : null;
+  const site = drawn && realHost ? { ...drawn, host: realHost, path: active === "jobs" ? "/boards/a" : `/web/${active}` } : drawn;
+  const streaming = !!real && realReady && active !== "newtab";
   const ai = tabs.indexOf(active);
   const frame = "#dfe3e7";
   const geo = max ? { left: 8, top: 31, right: 8, bottom: 78 } : { left: pos.x, top: pos.y, width: "78%", height: 470 };
 
   return (
-    <div className="relative h-[680px] select-none overflow-hidden [&_[role=button]]:cursor-pointer [&_button]:cursor-pointer" style={{ borderRadius: 14, backgroundImage: `url(${WALLPAPER})`, backgroundSize: "cover", backgroundPosition: "center", fontFamily: SANS, boxShadow: "0 0 0 1px #2a2a2a", WebkitFontSmoothing: "antialiased" }}>
+    <div ref={root} className="relative h-[680px] select-none overflow-hidden [&_[role=button]]:cursor-pointer [&_button]:cursor-pointer" style={{ borderRadius: 14, backgroundImage: `url(${WALLPAPER})`, backgroundSize: "cover", backgroundPosition: "center", fontFamily: SANS, boxShadow: "0 0 0 1px #2a2a2a", WebkitFontSmoothing: "antialiased" }}>
       {/* menu bar */}
       <div className="absolute inset-x-0 top-0 z-[80] flex h-[24px] items-center justify-between pl-[14px] pr-[10px] text-[13px] text-white" style={{ background: "rgba(20,24,40,.16)", backdropFilter: "blur(24px) saturate(1.5)", WebkitBackdropFilter: "blur(24px) saturate(1.5)", textShadow: "0 0 6px rgba(0,0,0,.25)", letterSpacing: "-0.08px" }}>
         <div className="flex h-[24px] min-w-0 flex-1 flex-wrap items-center overflow-hidden whitespace-nowrap">
@@ -409,6 +429,17 @@ export default function Mac({ objects, live }: { objects: Obj[]; live: { app: Si
             {active === "calendar" && <CalendarSite objects={objects} hl={hl} hlT={live?.t} />}
             {active === "cuts" && <CutsSite objects={objects} hl={hl} hlT={live?.t} />}
             {active === "jobs" && <iframe src="/boards/a" title="Northwind Jobs" className="h-full w-full" style={{ border: 0 }} />}
+            {real && (
+              <iframe
+                key={real.id}
+                src={real.viewerUrl}
+                title="Chrome"
+                allow="autoplay; clipboard-read; clipboard-write; fullscreen"
+                onLoad={() => setRealReady(true)}
+                className="absolute inset-0 h-full w-full"
+                style={{ border: 0, background: "#fff", opacity: streaming ? 1 : 0, pointerEvents: streaming ? "auto" : "none", transition: "opacity .25s" }}
+              />
+            )}
           </div>
         </div>
       )}
