@@ -1,18 +1,18 @@
-# AgentOS
-
-**The operating system for agents.** Apps publish data and typed actions instead of pixels, so an AI agent works through direct calls rather than screenshots.
+# AgentOS: the operating system for AGI
 
 **Live demo:** https://agentsos.vercel.app · Built in one day at **Supabase Select 2026** (YC HQ, San Francisco) by Rithvik Burki and Arav Dharnikota.
 
+Every computer ever built was designed for a human. Screens, buttons, mice. So when we gave AI agents jobs, we handed them a video feed of a GUI and wished them luck. Today's browser agents burn tens of thousands of tokens staring at pixels and fighting cookie banners to do what one function call does in milliseconds.
+
+We think that's the wrong interface. Everyone is handing off increasingly more and more work to agents every day. In the past few months, the release of grokbot, muse, instinct, and dots marked the shift from viewing agents as a chatbot to seeing them as teammates - the next step toward AGI. They needed their own computers to be fully autonomous. Despite all the advancements however, these agentic teammates are still trapped in an OS that is foreign to them, limiting their potential to work.
+
+Every agent we interviewed had one common problem: the world they currently live in serves them pixels rather than data. Thats why we built an OS for them...
+
+AgentOS is an operating system built for agents instead of humans. Apps don't render pixels; they publish a manifest, a public menu of typed actions like jobs.search and calendar.book, the same way websites publish robots.txt. Agents connect once, get a scoped identity, and work through direct calls. Every action returns a receipt: attributable, auditable, reversible.
+
+How did we prove it? A race, of course. Same task, same site: Grok Bot against Sonnet 5.5 on AgentOS. 8 minutes against 9 seconds. The results spoke for themselves.
+
 ---
-
-## Why
-
-Every computer ever built was designed for a human: screens, buttons, mice. When we gave AI agents jobs, we handed them a video feed of a GUI and wished them luck. Today's computer-use agents spend tens of thousands of tokens staring at screenshots and fighting cookie banners to do what one function call does in milliseconds.
-
-In the past few months, agents like Grok Bot, Muse, Instinct and Dots have moved from chatbots to teammates. They still live on an OS built for someone else. Every agent we talked to had the same problem: **the world serves them pixels instead of data.**
-
-So we built them an operating system.
 
 ## What AgentOS is
 
