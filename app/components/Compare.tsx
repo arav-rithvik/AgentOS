@@ -16,7 +16,7 @@ export default function Compare({ run, calls }: { run: Run | null; calls: number
     <div className="mt-14">
       <div className="mono text-[22px] leading-tight tracking-tight sm:text-[26px]">The comparison</div>
       <div className="mt-1 text-[15px]" style={{ color: "var(--dim)" }}>
-        Same task, every agent. Exact numbers, nothing rounded.{!done && " Press send to fill in AgentOS’s box with this run."}
+        Same task, every agent.{!done && " Press send to fill in AgentOS’s box with this run."}
       </div>
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Box name="AgentOS" by="This run, live" logo={null} vals={ours} hot />
