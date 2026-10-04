@@ -2,7 +2,7 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.SUPABASE_SER
 const q = async (path) => (await fetch(`${url}/rest/v1/${path}`, { headers: { apikey: key, Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(15000) })).json();
 const preset = process.argv[2] ?? "internships";
 const t0 = Date.now();
-const res = await fetch("http://localhost:3000/api/run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ preset }), signal: AbortSignal.timeout(30000) });
+const res = await fetch((process.env.BASE ?? "http://localhost:3000") + "/api/run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ preset }), signal: AbortSignal.timeout(30000) });
 const body = await res.json();
 console.log("POST /api/run ->", res.status, JSON.stringify(body), `(${Date.now() - t0} ms)`);
 if (!body.runId) process.exit(1);

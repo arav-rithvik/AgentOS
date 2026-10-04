@@ -131,7 +131,7 @@ export function JobBoard({ board, jobs, today }: { board: BoardMeta; jobs: Board
         <header style={{ background: c }} className="text-white">
           <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
             <div className="flex items-center gap-8">
-              <span className="text-2xl font-extrabold tracking-tight">Northwind<span className="font-light">Jobs</span></span>
+              <span className="text-2xl font-extrabold tracking-tight">Launch<span className="font-light">pad</span></span>
               <nav className="hidden gap-6 text-sm font-medium text-white/85 md:flex">
                 {v.nav.map((n) => <span key={n} className="cursor-pointer hover:text-white">{n}</span>)}
               </nav>
@@ -177,7 +177,7 @@ export function JobBoard({ board, jobs, today }: { board: BoardMeta; jobs: Board
           <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
               <BackLink />
-              <span className="font-serif text-2xl font-semibold italic" style={{ color: c }}>Lattice</span>
+              <span className="font-serif text-2xl font-semibold italic" style={{ color: c }}>InternLoop</span>
               <span className="font-serif text-2xl text-neutral-800">Careers</span>
             </div>
             <nav className="hidden items-center gap-6 text-sm text-neutral-600 md:flex">
@@ -234,7 +234,7 @@ export function JobBoard({ board, jobs, today }: { board: BoardMeta; jobs: Board
           <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
             <div className="flex items-center gap-3">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg text-lg font-black text-white" style={{ background: c }}>G</span>
-              <span className="text-xl font-black uppercase tracking-widest text-neutral-900">Gradhire</span>
+              <span className="text-xl font-black uppercase tracking-widest text-neutral-900">ResearchHire</span>
             </div>
             <nav className="hidden gap-5 text-sm font-semibold text-neutral-600 md:flex">
               {v.nav.map((n) => <span key={n} className="cursor-pointer hover:text-neutral-900">{n}</span>)}
@@ -291,7 +291,7 @@ export function JobBoard({ board, jobs, today }: { board: BoardMeta; jobs: Board
             <div className="flex items-center gap-4">
               <BackLink />
               <span className="font-mono text-xl font-bold" style={{ color: c }}>
-                intern<span className="text-neutral-900">stack</span>
+                campus<span className="text-neutral-900">grid</span>
                 <span className="ml-1 rounded bg-neutral-900 px-1.5 py-0.5 align-middle text-[10px] text-white">beta</span>
               </span>
             </div>
@@ -348,7 +348,7 @@ export function JobBoard({ board, jobs, today }: { board: BoardMeta; jobs: Board
       <div className="px-6 pt-3"><BackLink /></div>
       <header className="mx-auto max-w-3xl px-6 pb-6 pt-4 text-center">
         <div className="text-4xl font-bold lowercase italic tracking-tight" style={{ color: c }}>
-          🌱 sprout board
+          🌱 stackwise jobs
         </div>
         <nav className="mt-3 flex justify-center gap-5 text-sm text-neutral-600">
           {v.nav.map((n) => <span key={n} className="cursor-pointer hover:text-neutral-900">{n}</span>)}
