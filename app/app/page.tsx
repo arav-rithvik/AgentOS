@@ -1,12 +1,13 @@
 import Globe from "@/components/globe/Globe";
 import Playground from "@/components/Playground";
 import SupabaseLogo from "@/components/SupabaseLogo";
+import SupabaseSection from "@/components/SupabaseSection";
 
 // Real answers only: each agent was asked "what would you want out of an agent-native OS?"
 // Logos: Grok and Claude from @lobehub/icons-static-svg; Instinct, Dots and Muse from the team.
 // Muse: add a card here once its verbatim reply is in (logo is public/agents/muse.png).
 const logo = (src: string, bg: string, pad = 9) => (
-  <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full" style={{ background: bg, padding: pad }}>
+  <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden" style={{ background: bg, padding: pad }}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={src} alt="" className={pad ? "h-full w-full object-contain" : "h-full w-full object-cover"} />
   </span>
@@ -61,9 +62,9 @@ export default function Home() {
           <SupabaseLogo size={15} />
           <span style={{ color: "var(--fg)" }}>Supabase Select 2026</span>
         </div>
-        <h1 className="mono mt-5 text-[40px] leading-tight tracking-tight sm:text-[64px]">The computer for agents.</h1>
+        <h1 className="mono mt-5 text-[40px] leading-tight tracking-tight sm:text-[64px]">The OS for agents.</h1>
         <p className="mx-auto mt-6 max-w-[640px] text-[18px] leading-relaxed sm:text-[21px]" style={{ color: "#cfcfcf" }}>
-          AgentOS is a computer that lets AI agents use your apps as data instead of screenshots, so they finish real tasks in seconds, not minutes, and show you every step.
+          AgentOS is an operating system that lets AI agents use your apps as data instead of screenshots, so they finish real tasks in seconds, not minutes, and show you every step.
         </p>
         <div className="mt-10 flex items-center justify-center">
           <a href="#try" className="btn !border-white !bg-white !text-black">
@@ -76,7 +77,9 @@ export default function Home() {
         <Playground />
       </section>
 
-      <section className="py-28">
+      <SupabaseSection />
+
+      <section className="pt-28 pb-14">
         <h2 className="mono px-4 text-center text-[28px] leading-tight sm:text-[40px]">Agent Testimonies</h2>
         <p className="mx-auto mt-4 max-w-[560px] px-4 text-center text-[16px]" style={{ color: "var(--dim)" }}>
           The goal was to build something agents want, so we did the first thing you’re supposed to do: we asked our agents what they would want that they don’t have today.
@@ -84,7 +87,7 @@ export default function Home() {
         <div className="marquee-mask mt-12 overflow-hidden">
           <div className="marquee flex w-max gap-5">
             {[...VOICES, ...VOICES, ...VOICES].map((v, i) => (
-              <div key={i} className="w-[420px] shrink-0 rounded-2xl border p-6" style={{ borderColor: "var(--line-2)", background: "var(--panel)" }}>
+              <div key={i} className="w-[420px] shrink-0 border p-6" style={{ borderColor: "var(--line-2)", background: "var(--panel)" }}>
                 <div className="flex items-center gap-3">
                   {v.avatar}
                   <div>
@@ -103,6 +106,27 @@ export default function Home() {
         </div>
       </section>
 
+      <footer className="border-t px-4 py-10 sm:px-14" style={{ borderColor: "var(--line)" }}>
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <Globe cols={14} rows={8} speed={3} className="text-[4px]" />
+            <div>
+              <div className="mono text-[12px] tracking-[0.14em]">AGENTOS</div>
+              <div className="mt-1 text-[14px]" style={{ color: "var(--dim)" }}>
+                The OS for agents.
+              </div>
+            </div>
+          </div>
+          <div className="text-[13px] sm:text-right" style={{ color: "var(--faint)" }}>
+            <div className="mono inline-flex items-center gap-2 uppercase tracking-[0.12em]">
+              <span>Built at</span>
+              <SupabaseLogo size={12} />
+              <span style={{ color: "var(--dim)" }}>Supabase Select 2026</span>
+            </div>
+            <div className="mt-1.5">By Rithvik and Arav · Demo environment: tasks run on pre-connected demo apps.</div>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

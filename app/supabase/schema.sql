@@ -248,7 +248,7 @@ select
   d, t.slot_time,
   case when (t.n + s.k) % 4 >= 2 then 45 else 30 end,
   s.base + case when (t.n + s.k) % 4 >= 2 then 12 else 0 end
-from (values ('ss','SuperSnips', 24, 0), ('nb','North Beach Barbers', 38, 1), ('sa','Shear Avenue', 52, 2)) as s(code, salon, base, k),
+from (values ('ss','Fade & Co.', 24, 0), ('nb','North Beach Barbers', 38, 1), ('sa','Shear Avenue', 52, 2)) as s(code, salon, base, k),
      generate_series(1, 3) as d,
      (values (1, time '09:00'), (2, time '09:45'), (3, time '10:30'), (4, time '11:15'), (5, time '13:00'), (6, time '14:30'), (7, time '16:00'), (8, time '17:30')) as t(n, slot_time);
 

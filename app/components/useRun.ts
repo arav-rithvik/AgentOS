@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BOARDS, ME, seedObjects, TODAY, type Action, type Job, type Obj, type Run } from "./data";
-import { browser, describe, LIVE, local, toPreset } from "./live";
+import { describe, LIVE, local, toPreset } from "./live";
 
 // Runner. With Supabase env set (LIVE), `start` posts to /api/run and the real run's
 // action_log/runs/events/docs/bookings rows arrive over Realtime. Without it, a scripted
@@ -10,6 +10,7 @@ import { browser, describe, LIVE, local, toPreset } from "./live";
 
 export type Line = { id: string; text: string; action?: Action; pending?: boolean; group?: string; req?: { call: string; args: Record<string, unknown> } };
 export type Site = "jobs" | "docs" | "calendar" | "mail" | "cuts";
+export type Live = { app: Site; key?: string; t: number; keys?: Partial<Record<Site, string>> };
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let n = 0;
@@ -25,7 +26,7 @@ export function useRun() {
   const [objects, setObjects] = useState<Obj[]>(seedObjects);
   const [lines, setLines] = useState<Line[]>([]);
   const [run, setRun] = useState<Run | null>(null);
-  const [live, setLive] = useState<{ app: Site; key?: string; t: number } | null>(null);
+  const [live, setLive] = useState<Live | null>(null);
   const busy = useRef(false);
   const objRef = useRef(objects);
   objRef.current = objects;
@@ -34,12 +35,16 @@ export function useRun() {
   const patch = (id: string, u: Partial<Line>) => setLines((p) => p.map((l) => (l.id === id ? { ...l, ...u } : l)));
   const tick = (u: Partial<Run>) => setRun((r) => (r ? { ...r, ...u } : r));
   const add = (o: Obj) => setObjects((os) => [...os, o]);
-  const show = (app: Site, key?: string) => setLive({ app, key, t: Date.now() });
+  // `keys` remembers the agent's last write in each app, so every app opens on what changed.
+  const show = (app: Site, key?: string) => setLive((p) => ({ app, key, t: Date.now(), keys: { ...p?.keys, ...(key ? { [app]: key } : {}) } }));
 
   // Live: the calendar shows the real seeded events (deadlines etc.), not the offline seed.
   const loadSeed = useCallback(async () => {
     if (!LIVE) return;
-    const { data } = await browser().from("events").select("id, title, starts_at, duration_min").is("run_id", null).order("starts_at");
+    const data = await fetch("/api/seed")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { events?: { id: string; title: string; starts_at: string; duration_min: number }[] } | null) => j?.events)
+      .catch(() => undefined);
     if (!data) return;
     const evts: Obj[] = data.map((e) => ({ app: "calendar", type: "event", key: e.id, data: { title: e.title, start: local(e.starts_at), end: local(e.starts_at, e.duration_min) } }));
     setObjects((os) => [...os.filter((o) => o.type !== "event"), ...evts]);
@@ -81,7 +86,6 @@ export function useRun() {
     }
     tick({ id: runId });
 
-    const sb = browser();
     const seen = new Set<number>();
     let lastStart = 0;
     let lastId = "";
@@ -100,53 +104,52 @@ export function useRun() {
       else if (a.action === "calendar.list") show("calendar");
     };
 
-    await new Promise<void>((resolve) => {
-      const done = (r: { status: string; summary: string | null; steps: number; input_tokens: number; output_tokens: number; ms: number }) => {
-        tick({ status: r.status === "error" ? "error" : r.status === "done" ? "done" : "running", result: r.summary, steps: r.steps, input_tokens: r.input_tokens, output_tokens: r.output_tokens, ms: r.ms });
-        if (r.status !== "running") {
-          clearTimeout(guard);
-          setTimeout(() => sb.removeChannel(ch), 1500);
-          resolve();
-        }
-      };
-      const guard = setTimeout(() => {
-        sb.removeChannel(ch);
+    // Follow the run by polling the server (it reads Supabase with the service role key).
+    const seenObj = new Set<string>();
+    type Snap = {
+      run: { status: string; summary: string | null; steps: number; input_tokens: number; output_tokens: number; ms: number };
+      actions: Parameters<typeof onAction>[0][];
+      events: { id: string; title: string; starts_at: string; duration_min: number }[];
+      docs: { id: string; title: string; body: string }[];
+      bookings: { id: string; app: string; title: string; price: number; details: Record<string, unknown> }[];
+    };
+    const apply = (j: Snap) => {
+      j.actions.forEach(onAction);
+      j.events.forEach((e) => {
+        if (seenObj.has(e.id)) return;
+        seenObj.add(e.id);
+        add({ app: "calendar", type: "event", key: e.id, data: { title: e.title, start: local(e.starts_at), end: local(e.starts_at, e.duration_min) } });
+        show("calendar", e.id);
+      });
+      j.docs.forEach((d) => {
+        if (seenObj.has(d.id)) return;
+        seenObj.add(d.id);
+        add({ app: "docs", type: "doc", key: d.id, data: { title: d.title, body: d.body } });
+        show("docs", d.id);
+      });
+      j.bookings.forEach((b) => {
+        if (seenObj.has(b.id) || b.app !== "salon") return;
+        seenObj.add(b.id);
+        const start = String(b.details.starts_at ?? b.details.start ?? "");
+        add({ app: "cuts", type: "booking", key: b.id, data: { service: b.title.split(" at ")[0], barber: String(b.details.stylist ?? b.details.barber ?? ""), start: start ? local(start) : "", price: Number(b.price) } });
+        show("cuts", b.id);
+      });
+      const r = j.run;
+      tick({ status: r.status === "error" ? "error" : r.status === "done" ? "done" : "running", result: r.summary, steps: r.steps, input_tokens: r.input_tokens, output_tokens: r.output_tokens, ms: r.ms });
+      return r.status !== "running";
+    };
+    const t0 = Date.now();
+    for (;;) {
+      await sleep(500);
+      const j = (await fetch(`/api/run/${runId}`, { cache: "no-store" })
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null)) as Snap | null;
+      if (j?.run && apply(j)) break;
+      if (Date.now() - t0 > 120000) {
         tick({ status: "error", result: "The run took too long." });
-        resolve();
-      }, 120000);
-      const ins = (table: string, col = "run_id") => ({ event: "INSERT" as const, schema: "public", table, filter: `${col}=eq.${runId}` });
-      const ch = sb
-        .channel(`run-${runId}`)
-        .on("postgres_changes", ins("action_log"), (p) => onAction(p.new as never))
-        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "runs", filter: `id=eq.${runId}` }, (p) => done(p.new as never))
-        .on("postgres_changes", ins("events"), (p) => {
-          const e = p.new as { id: string; title: string; starts_at: string; duration_min: number };
-          add({ app: "calendar", type: "event", key: e.id, data: { title: e.title, start: local(e.starts_at), end: local(e.starts_at, e.duration_min) } });
-          show("calendar", e.id);
-        })
-        .on("postgres_changes", ins("docs"), (p) => {
-          const d = p.new as { id: string; title: string; body: string };
-          add({ app: "docs", type: "doc", key: d.id, data: { title: d.title, body: d.body } });
-          show("docs", d.id);
-        })
-        .on("postgres_changes", ins("bookings"), (p) => {
-          const b = p.new as { id: string; app: string; title: string; price: number; details: Record<string, unknown> };
-          if (b.app !== "salon") return;
-          const start = String(b.details.starts_at ?? b.details.start ?? "");
-          add({ app: "cuts", type: "booking", key: b.id, data: { service: b.title.split(" at ")[0], barber: String(b.details.stylist ?? b.details.barber ?? ""), start: start ? local(start) : "", price: Number(b.price) } });
-          show("cuts", b.id);
-        })
-        .subscribe(async (status) => {
-          if (status !== "SUBSCRIBED") return;
-          // Catch anything written before the channel joined.
-          const [{ data: acts }, { data: r }] = await Promise.all([
-            sb.from("action_log").select("id, action, args, receipt, latency_ms").eq("run_id", runId).order("id"),
-            sb.from("runs").select("status, summary, steps, input_tokens, output_tokens, ms").eq("id", runId).single(),
-          ]);
-          (acts ?? []).forEach((a) => onAction(a as never));
-          if (r) done(r as never);
-        });
-    });
+        break;
+      }
+    }
   };
 
   const start = useCallback(async (prompt: string) => {

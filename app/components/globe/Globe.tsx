@@ -83,16 +83,15 @@ export default function Globe({ cols = 40, rows = 20, speed = 1, className = "" 
   speedRef.current = speed;
 
   useEffect(() => {
-    let raf = 0, last = 0, angle = 0, camXY = 0, cur = speedRef.current;
+    let raf = 0, last = 0, angle = 0, cur = speedRef.current;
     const tick = (t: number) => {
       raf = requestAnimationFrame(tick);
       if (t - last < 50) return;
       last = t;
       cur += (speedRef.current - cur) * 0.08; // ease between idle and working speed
       const s = 0.02 * cur;
-      angle += s;
-      camXY -= s / 2;
-      if (ref.current) ref.current.textContent = render(cols, rows, angle, camXY, false);
+      angle += s; // camera stays put: orbiting it too cancelled the spin exactly
+      if (ref.current) ref.current.textContent = render(cols, rows, angle, 0, false);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);

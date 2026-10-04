@@ -49,7 +49,7 @@ export const manifest = {
       },
     },
     salon: {
-      about: "Haircut appointments at three salons: SuperSnips, North Beach Barbers, Shear Avenue.",
+      about: "Haircut appointments at three salons: Fade & Co., North Beach Barbers, Shear Avenue.",
       actions: {
         "salon.slots.list": {
           args: { date: "YYYY-MM-DD local, optional", salon: "string, optional", before: "HH:MM local, optional", maxPrice: "number, optional" },

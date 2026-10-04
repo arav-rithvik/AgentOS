@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ME, SHOP, TODAY, type Obj } from "../data";
 import { MS, P } from "./icons";
 
-type P_ = { objects: Obj[]; hl?: string; hlT?: number };
+type P_ = { objects: Obj[]; hl?: string; hlT?: number; onAdd?: (o: Obj) => void };
 const font = { fontFamily: '"Google Sans", Roboto, -apple-system, "Helvetica Neue", Arial, sans-serif' };
 const textFont = { fontFamily: 'Roboto, -apple-system, "Helvetica Neue", Arial, sans-serif' };
 const fl = (hl: string | undefined, key: string) => (hl === key ? "flash-light" : "");
@@ -41,9 +41,9 @@ function Avatar({ name = ME.name, s = 32 }: { name?: string; s?: number }) {
   );
 }
 
-function IconBtn({ d, s = 20, c = "#444746", label }: { d: string; s?: number; c?: string; label?: string }) {
+function IconBtn({ d, s = 20, c = "#444746", label, onClick }: { d: string; s?: number; c?: string; label?: string; onClick?: () => void }) {
   return (
-    <span role="button" aria-label={label} className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-full hover:bg-[rgba(68,71,70,.08)]" style={{ color: c }}>
+    <span role="button" aria-label={label} onClick={onClick} className="flex h-[36px] w-[36px] shrink-0 cursor-pointer items-center justify-center rounded-full hover:bg-[rgba(68,71,70,.08)]" style={{ color: c }}>
       <MS d={d} s={s} />
     </span>
   );
@@ -435,10 +435,14 @@ function addDays(iso: string, n: number) {
   return d.toISOString().slice(0, 10);
 }
 
-export function CalendarSite({ objects, hl, hlT }: P_) {
+export function CalendarSite({ objects, hl, hlT, onAdd }: P_) {
   const events = objects.filter((o): o is Extract<Obj, { type: "event" }> => o.type === "event");
   const hlEv = events.find((e) => e.key === hl);
-  const focus = hlEv ? hlEv.data.start.slice(0, 10) : TODAY;
+  // nav = the week the user moved to with Today / ‹ / ›; null = follow the highlighted event (or today).
+  const [nav, setNav] = useState<{ d: string; for?: string } | null>(null);
+  const [form, setForm] = useState<{ title: string; date: string; start: string; end: string } | null>(null);
+  const focus = nav && nav.for === hl ? nav.d : hlEv ? hlEv.data.start.slice(0, 10) : TODAY;
+  const go = (d: string) => setNav({ d, for: hl });
   const dow = new Date(`${focus}T12:00`).getDay();
   const sunday = addDays(focus, -dow);
   const days = Array.from({ length: 7 }, (_, i) => addDays(sunday, i));
@@ -462,7 +466,41 @@ export function CalendarSite({ objects, hl, hlT }: P_) {
   const cells = Array.from({ length: 42 }, (_, i) => i - startPad + 1);
   const now = 15 + 27 / 60;
   return (
-    <div className="flex h-full flex-col" style={{ ...textFont, background: "#f8fafd", color: "#1f1f1f" }}>
+    <div className="relative flex h-full flex-col" style={{ ...textFont, background: "#f8fafd", color: "#1f1f1f" }}>
+      {form && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center" style={{ background: "rgba(0,0,0,.25)" }} onClick={() => setForm(null)}>
+          <form
+            role="dialog"
+            aria-label="New event"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!form.title.trim() || !form.date || !form.start) return;
+              const end = form.end > form.start ? form.end : `${String(Math.min(23, Number(form.start.slice(0, 2)) + 1)).padStart(2, "0")}${form.start.slice(2)}`;
+              onAdd?.({ app: "calendar", type: "event", key: `evt_${Date.now()}`, data: { title: form.title.trim(), start: `${form.date}T${form.start}`, end: `${form.date}T${end}` } });
+              setNav(null);
+              setForm(null);
+            }}
+            className="w-[420px] rounded-[28px] bg-white p-6"
+            style={{ ...font, boxShadow: "0 8px 30px rgba(0,0,0,.25)" }}
+          >
+            <input autoFocus aria-label="Title" placeholder="Add title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full border-b-2 pb-2 text-[22px] outline-none" style={{ borderColor: "#0b57d0" }} />
+            <div className="mt-5 grid grid-cols-[1fr_auto_auto] items-center gap-2 text-[14px]" style={{ color: "#444746" }}>
+              <input type="date" aria-label="Date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="rounded-md bg-[#f1f3f4] px-2 py-2 outline-none" />
+              <input type="time" aria-label="Start time" value={form.start} onChange={(e) => setForm({ ...form, start: e.target.value })} className="rounded-md bg-[#f1f3f4] px-2 py-2 outline-none" />
+              <input type="time" aria-label="End time" value={form.end} onChange={(e) => setForm({ ...form, end: e.target.value })} className="rounded-md bg-[#f1f3f4] px-2 py-2 outline-none" />
+            </div>
+            <div className="mt-6 flex justify-end gap-2 text-[14px] font-medium">
+              <button type="button" onClick={() => setForm(null)} className="rounded-full px-5 py-2 hover:bg-[#f1f3f4]" style={{ color: "#0b57d0" }}>
+                Cancel
+              </button>
+              <button type="submit" className="rounded-full px-6 py-2 text-white hover:opacity-90" style={{ background: "#0b57d0" }}>
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       <div className="flex h-[60px] shrink-0 items-center gap-1 pl-2 pr-4">
         <IconBtn d={P.menu} s={22} />
         <span className="flex shrink-0 items-center gap-2 pl-1 pr-5 text-[22px]" style={{ ...font, color: "#444746" }}>
@@ -475,11 +513,11 @@ export function CalendarSite({ objects, hl, hlT }: P_) {
           </svg>
           Calendar
         </span>
-        <span role="button" className="mr-2 shrink-0 cursor-pointer rounded-full border px-5 py-[7px] text-[14px] font-medium hover:bg-[rgba(68,71,70,.08)]" style={{ borderColor: "#747775", color: "#1f1f1f", ...font }}>
+        <span role="button" onClick={() => go(TODAY)} className="mr-2 shrink-0 cursor-pointer rounded-full border px-5 py-[7px] text-[14px] font-medium hover:bg-[rgba(68,71,70,.08)]" style={{ borderColor: "#747775", color: "#1f1f1f", ...font }}>
           Today
         </span>
-        <IconBtn d={P.left} s={22} />
-        <IconBtn d={P.right} s={22} />
+        <IconBtn d={P.left} s={22} label="Previous week" onClick={() => go(addDays(focus, -7))} />
+        <IconBtn d={P.right} s={22} label="Next week" onClick={() => go(addDays(focus, 7))} />
         <span className="ml-2 whitespace-nowrap text-[22px]" style={{ ...font, color: "#1f1f1f" }}>
           {monthLabel}
         </span>
@@ -498,7 +536,7 @@ export function CalendarSite({ objects, hl, hlT }: P_) {
       </div>
       <div className="flex min-h-0 flex-1">
         <div className="w-[200px] shrink-0 px-3">
-          <div role="button" className="ml-1 inline-flex h-[56px] cursor-pointer items-center gap-3 rounded-2xl bg-white pl-4 pr-6 text-[14px] font-medium hover:bg-[#f1f4f9]" style={{ ...font, boxShadow: "0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15)" }}>
+          <div role="button" onClick={onAdd ? () => setForm({ title: "", date: focus, start: "10:00", end: "11:00" }) : undefined} className="ml-1 inline-flex h-[56px] cursor-pointer items-center gap-3 rounded-2xl bg-white pl-4 pr-6 text-[14px] font-medium hover:bg-[#f1f4f9]" style={{ ...font, boxShadow: "0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15)" }}>
             <MS d={P.add} s={26} c="#1f1f1f" />
             Create <MS d={P.down} s={18} c="#444746" />
           </div>
@@ -506,9 +544,13 @@ export function CalendarSite({ objects, hl, hlT }: P_) {
             <div className="flex items-center justify-between pl-1 text-[14px] font-medium" style={font}>
               {monthLabel}
               <span className="flex" style={{ color: "#444746" }}>
-                <MS d={P.left} s={18} />
+                <span role="button" aria-label="Previous month" className="cursor-pointer" onClick={() => go(addDays(focus, -28))}>
+                  <MS d={P.left} s={18} />
+                </span>
                 <span className="w-2" />
-                <MS d={P.right} s={18} />
+                <span role="button" aria-label="Next month" className="cursor-pointer" onClick={() => go(addDays(focus, 28))}>
+                  <MS d={P.right} s={18} />
+                </span>
               </span>
             </div>
             <div className="mt-2 grid grid-cols-7 text-center text-[10.5px]" style={{ color: "#5e5e5e" }}>
@@ -524,7 +566,7 @@ export function CalendarSite({ objects, hl, hlT }: P_) {
                 const today = iso === TODAY;
                 const inWeek = days.includes(iso);
                 return (
-                  <span key={i} className="flex h-[24px] items-center justify-center" style={{ background: inWeek && !today ? "#d3e3fd" : undefined, borderRadius: inWeek ? (iso === days[0] ? "12px 0 0 12px" : iso === days[6] ? "0 12px 12px 0" : 0) : undefined }}>
+                  <span key={i} role={iso ? "button" : undefined} onClick={iso ? () => go(iso) : undefined} className="flex h-[24px] cursor-pointer items-center justify-center" style={{ background: inWeek && !today ? "#d3e3fd" : undefined, borderRadius: inWeek ? (iso === days[0] ? "12px 0 0 12px" : iso === days[6] ? "0 12px 12px 0" : 0) : undefined }}>
                     <span className="flex h-[24px] w-[24px] items-center justify-center rounded-full" style={{ background: today ? "#0b57d0" : undefined, color: today ? "#fff" : inMonth ? "#1f1f1f" : "#80868b", fontWeight: today ? 600 : 400 }}>
                       {label}
                     </span>
@@ -626,13 +668,19 @@ export function CalendarSite({ objects, hl, hlT }: P_) {
 
 /* ─────────────────────────── Fade & Co. ─────────────────────────── */
 
-export function CutsSite({ objects, hl, hlT }: P_) {
+export function CutsSite({ objects, hl, hlT, onAdd }: P_) {
   const bookings = objects.filter((o): o is Extract<Obj, { type: "booking" }> => o.type === "booking");
   const last = bookings.at(-1);
   const slots = ["12:30 PM", "1:15 PM", "2:00 PM", "2:45 PM", "3:30 PM", "4:45 PM", "5:30 PM", "6:15 PM"];
   const [svc, setSvc] = useState(0);
   const [barber, setBarber] = useState(0);
   const [day, setDay] = useState(1);
+  const [slot, setSlot] = useState(2);
+  const to24 = (t: string) => {
+    const [hm, ap] = t.split(" ");
+    const [h, m] = hm.split(":").map(Number);
+    return `${String((h % 12) + (ap === "PM" ? 12 : 0)).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  };
   const dates = Array.from({ length: 7 }, (_, i) => addDays(TODAY, i));
   const gold = "#c9a45c";
   // You're signed in on this computer already; one click to sign in, then Appointments shows what was booked.
@@ -766,12 +814,12 @@ export function CutsSite({ objects, hl, hlT }: P_) {
             ))}
           </div>
           <div className="flex gap-2 px-6 pb-6 pt-2">
-            <span role="button" className="flex-1 cursor-pointer rounded-lg border py-[10px] hover:bg-[#f5f3ef] text-center text-[13px] font-medium" style={{ borderColor: "#d6d3d1" }}>
+            <span role="button" onClick={() => setView("book")} className="flex-1 cursor-pointer rounded-lg border py-[10px] hover:bg-[#f5f3ef] text-center text-[13px] font-medium" style={{ borderColor: "#d6d3d1" }}>
               Reschedule
             </span>
-            <span role="button" className="flex-1 cursor-pointer rounded-lg py-[10px] text-center text-[13px] font-semibold text-white hover:opacity-90" style={{ background: "#111" }}>
-              Add to calendar
-            </span>
+            <a href={onAdd ? "/web/calendar" : undefined} className="flex-1 cursor-pointer rounded-lg py-[10px] text-center text-[13px] font-semibold text-white hover:opacity-90" style={{ background: "#111" }}>
+              Open calendar
+            </a>
           </div>
         </div>
         </div>
@@ -830,19 +878,38 @@ export function CutsSite({ objects, hl, hlT }: P_) {
               Afternoon
             </div>
             <div className="mt-2 grid grid-cols-3 gap-2">
-              {slots.map((t, i) => (
-                <span key={t} role="button" className="cursor-pointer rounded-lg border py-[7px] text-center text-[13px] hover:border-[#111]" style={{ borderColor: i === 2 ? "#111" : "#e1ddd5", background: i === 2 ? "#111" : "#fff", color: i === 2 ? "#fff" : i === 4 ? "#c4beb4" : "#161616", textDecoration: i === 4 ? "line-through" : undefined }}>
-                  {t}
-                </span>
-              ))}
+              {slots.map((t, i) => {
+                const taken = i === 4;
+                const on = slot === i && !taken;
+                return (
+                  <button key={t} type="button" disabled={taken} aria-pressed={on} onClick={() => setSlot(i)} className="rounded-lg border py-[7px] text-center text-[13px] enabled:hover:border-[#111]" style={{ borderColor: on ? "#111" : "#e1ddd5", background: on ? "#111" : "#fff", color: on ? "#fff" : taken ? "#c4beb4" : "#161616", textDecoration: taken ? "line-through" : undefined }}>
+                    {t}
+                  </button>
+                );
+              })}
             </div>
             <div className="mt-5 flex items-center justify-between border-t pt-4 text-[13px]" style={{ borderColor: "#eee" }}>
               <span style={{ color: "#7a746b" }}>{SHOP.services[svc].name}</span>
               <span className="font-semibold">${SHOP.services[svc].price}</span>
             </div>
-            <div role="button" className="mt-3 cursor-pointer rounded-xl py-3 text-center text-[14px] font-semibold text-white hover:opacity-90" style={{ background: "#111" }}>
-              Book appointment
+            <div className="mt-1 text-[12px]" style={{ color: "#7a746b" }}>
+              {fmt(`${dates[day]}T${to24(slots[slot])}`)} · {barber === 0 ? "Any barber" : SHOP.barbers[barber - 1]}
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                const s = SHOP.services[svc];
+                onAdd?.({ app: "cuts", type: "booking", key: `bk_${Date.now()}`, data: { service: s.name, barber: barber === 0 ? SHOP.barbers[0] : SHOP.barbers[barber - 1], start: `${dates[day]}T${to24(slots[slot])}`, price: s.price } });
+                if (onAdd) {
+                  setMe(true);
+                  setView("appts");
+                }
+              }}
+              className="mt-3 w-full cursor-pointer rounded-xl py-3 text-center text-[14px] font-semibold text-white hover:opacity-90"
+              style={{ background: "#111" }}
+            >
+              Book appointment
+            </button>
             <div className="mt-2 text-center text-[11px]" style={{ color: "#a19a8f" }}>
               Free cancellation up to 2 hours before
             </div>
