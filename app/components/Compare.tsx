@@ -1,6 +1,6 @@
 "use client";
 
-import { BENCHMARK } from "./benchmark";
+import { BENCHMARK, ESTIMATED } from "./benchmark";
 import type { Run } from "./data";
 
 // Same task, every agent. AgentOS's numbers are this run's, exactly as measured. The rest come from the benchmark.
@@ -21,12 +21,12 @@ export default function Compare({ run, calls }: { run: Run | null; calls: number
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Box name="AgentOS" by="This run, live" logo={null} vals={ours} hot />
         {BENCHMARK.map((b) => (
-          <Box key={b.name} name={b.name} by={b.by} logo={b} vals={b} />
+          <Box key={b.name} name={b.name} by={ESTIMATED ? `${b.by} · estimated` : b.by} logo={b} vals={b} />
         ))}
       </div>
-      {pending && (
+      {(pending || ESTIMATED) && (
         <div className="mt-3 text-[13px]" style={{ color: "var(--faint)" }}>
-          Other agents’ numbers are being measured on the same task now.
+          {pending ? "Other agents’ numbers are being measured on the same task now." : "Other agents’ numbers are estimates for this task, from how screenshot agents run it. AgentOS’s numbers are measured live from your run."}
         </div>
       )}
     </div>
